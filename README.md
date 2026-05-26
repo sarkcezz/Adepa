@@ -40,7 +40,7 @@ public_html/                          ← React build + .htaccess (SPA fallback 
 
 ~/laravel/                            ← Laravel app, outside webroot
 ├── app/  config/  database/  routes/
-└── public/  (set as document root for api.adepaporkhub.com)
+└── public/  (set as document root for api.adepaporkhub.shop)
 
 Cron:  * * * * *  php ~/laravel/artisan schedule:run
        └─→ drains DB queue every minute (emails, SMS)
@@ -78,7 +78,7 @@ The Vite dev server proxies `/api/*` to Laravel.
 
 | Role     | Login                          | Password               |
 |----------|--------------------------------|------------------------|
-| Admin    | `admin@adepaporkhub.com`       | `ChangeMe@2025!`       |
+| Admin    | `admin@adepaporkhub.shop`       | `ChangeMe@2025!`       |
 | Employee | `APH-0001`                     | `Employee@2025!`       |
 | Customer | `kofi.boateng@gmail.com`       | `Customer@2025!`       |
 

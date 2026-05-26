@@ -61,7 +61,7 @@ export default function SaleReceipt() {
             <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-lg bg-flame text-2xl font-bold text-white">A</div>
             <h1 className="display text-xl font-bold text-night-900">Adepa Pork Hub</h1>
             <p className="text-xs text-night-600">Fresh. Spiced. Ready for Every Meal.</p>
-            <p className="mt-1 text-xs text-night-500">Accra, Ghana • orders@adepaporkhub.com</p>
+            <p className="mt-1 text-xs text-night-500">Accra, Ghana • orders@adepaporkhub.shop</p>
           </header>
 
           {/* Meta */}
@@ -159,10 +159,10 @@ export default function SaleReceipt() {
                 {order.payment_status}
               </span>
             </div>
-            {order.payment_reference && (
+            {order.paystack_reference && (
               <div className="flex justify-between">
                 <span className="text-night-500">Reference</span>
-                <span className="font-mono">{order.payment_reference}</span>
+                <span className="font-mono">{order.paystack_reference}</span>
               </div>
             )}
           </section>
@@ -170,7 +170,7 @@ export default function SaleReceipt() {
           {/* Footer */}
           <footer className="mt-5 border-t border-dashed border-night-300 pt-4 text-center text-xs text-night-500">
             <p className="font-semibold text-night-800">Thank you for choosing Adepa Pork Hub!</p>
-            <p className="mt-1">Find us at adepaporkhub.com</p>
+            <p className="mt-1">Find us at adepaporkhub.shop</p>
             <p className="mt-3 text-[10px] text-night-400">Keep this receipt for any returns or queries.</p>
           </footer>
         </div>

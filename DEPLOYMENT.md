@@ -25,7 +25,7 @@ This guide walks a non-technical operator through deploying both halves of the p
 ## Step 2 — Enable Free SSL & subdomain (recommended)
 
 1. **hPanel → SSL → Free SSL** — enable for the main domain.
-2. **hPanel → Subdomains → Create subdomain** `api.adepaporkhub.com` and point its document root to `~/laravel/public`.
+2. **hPanel → Subdomains → Create subdomain** `api.adepaporkhub.shop` and point its document root to `~/laravel/public`.
 
 If you can't use a subdomain, see "Subfolder option" at the bottom.
 
@@ -50,7 +50,7 @@ If you can't use a subdomain, see "Subfolder option" at the bottom.
    php artisan db:seed --force
    chmod -R 775 storage bootstrap/cache
    ```
-5. **Verify**: `https://api.adepaporkhub.com/api/v1/products` should return a JSON product list.
+5. **Verify**: `https://api.adepaporkhub.shop/api/v1/products` should return a JSON product list.
 
 ### .env essentials to fill in
 
@@ -61,7 +61,7 @@ If you can't use a subdomain, see "Subfolder option" at the bottom.
 | `HUBTEL_CLIENT_ID`, `HUBTEL_CLIENT_SECRET`, `HUBTEL_SENDER_ID` | Hubtel dashboard |
 | `MAIL_PASSWORD` | SendGrid API key (username stays `apikey`) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Cloudinary dashboard |
-| `FRONTEND_URL` | Your frontend URL — `https://adepaporkhub.com` |
+| `FRONTEND_URL` | Your frontend URL — `https://adepaporkhub.shop` |
 
 ---
 
@@ -69,7 +69,7 @@ If you can't use a subdomain, see "Subfolder option" at the bottom.
 
 1. **Locally**, create `.env`:
    ```env
-   VITE_API_BASE_URL=https://api.adepaporkhub.com/api/v1
+   VITE_API_BASE_URL=https://api.adepaporkhub.shop/api/v1
    VITE_PAYSTACK_PUBLIC_KEY=pk_live_xxxx
    VITE_WHATSAPP_NUMBER=233500000000
    ```
@@ -80,7 +80,7 @@ If you can't use a subdomain, see "Subfolder option" at the bottom.
    npm run build
    ```
 3. **Upload** the contents of `frontend/dist/` (not the folder itself — the files inside) **and** the `frontend/public/.htaccess` file into `public_html/` on Hostinger.
-4. **Verify**: visit `https://adepaporkhub.com` — the homepage should load.
+4. **Verify**: visit `https://adepaporkhub.shop` — the homepage should load.
 
 ---
 
@@ -104,7 +104,7 @@ Replace `USERNAME` with your Hostinger account username.
 
 In **Paystack Dashboard → Settings → API Keys & Webhooks**:
 
-- **Webhook URL:** `https://api.adepaporkhub.com/api/v1/payments/webhook`
+- **Webhook URL:** `https://api.adepaporkhub.shop/api/v1/payments/webhook`
 - **Enable events:** `charge.success`, `charge.failed`
 
 The endpoint verifies HMAC-SHA512 with your secret key — invalid signatures get 403.
@@ -113,10 +113,10 @@ The endpoint verifies HMAC-SHA512 with your secret key — invalid signatures ge
 
 ## Step 7 — Test the deployment end to end
 
-1. ✅ `https://adepaporkhub.com` — React app loads
-2. ✅ `https://api.adepaporkhub.com/api/v1/products` — JSON product list
+1. ✅ `https://adepaporkhub.shop` — React app loads
+2. ✅ `https://api.adepaporkhub.shop/api/v1/products` — JSON product list
 3. ✅ Register a customer → login → add to cart → checkout → Paystack → order created
-4. ✅ Admin login at `/login` with `admin@adepaporkhub.com` / your `ADMIN_PASSWORD` → goes to `/admin`
+4. ✅ Admin login at `/login` with `admin@adepaporkhub.shop` / your `ADMIN_PASSWORD` → goes to `/admin`
 5. ✅ Employee login at `/employee/login` with `APH-0001` / `Employee@2025!` → goes to `/employee`
 
 ---
@@ -125,7 +125,7 @@ The endpoint verifies HMAC-SHA512 with your secret key — invalid signatures ge
 
 | Role | Email / ID | Password |
 |---|---|---|
-| Admin | `admin@adepaporkhub.com` | value of `ADMIN_PASSWORD` in `.env` |
+| Admin | `admin@adepaporkhub.shop` | value of `ADMIN_PASSWORD` in `.env` |
 | Employee 1 | `APH-0001` | `Employee@2025!` (forced change on first login) |
 | Employee 2 | `APH-0002` | `Employee@2025!` (forced change on first login) |
 | Customer (seed) | `kofi.boateng@gmail.com` | `Customer@2025!` |
@@ -134,7 +134,7 @@ The endpoint verifies HMAC-SHA512 with your secret key — invalid signatures ge
 
 ## Subfolder option (if you can't use a subdomain)
 
-If `api.adepaporkhub.com` isn't possible:
+If `api.adepaporkhub.shop` isn't possible:
 
 1. Create `public_html/api/` and copy contents of `~/laravel/public/` into it.
 2. Edit `public_html/api/index.php`:
@@ -142,8 +142,8 @@ If `api.adepaporkhub.com` isn't possible:
    require __DIR__.'/../../laravel/vendor/autoload.php';
    $app = require_once __DIR__.'/../../laravel/bootstrap/app.php';
    ```
-3. In **frontend `.env`**, set `VITE_API_BASE_URL=https://adepaporkhub.com/api/api/v1`.
-4. Webhook URL becomes `https://adepaporkhub.com/api/api/v1/payments/webhook`.
+3. In **frontend `.env`**, set `VITE_API_BASE_URL=https://adepaporkhub.shop/api/api/v1`.
+4. Webhook URL becomes `https://adepaporkhub.shop/api/api/v1/payments/webhook`.
 
 ---
 

@@ -11,8 +11,8 @@ class EmployeeSeeder extends Seeder
     public function run(): void
     {
         $employees = [
-            ['name' => 'Kwame Asante',  'email' => 'kwame@adepaporkhub.com', 'phone' => '0244000001', 'employee_id' => 'APH-0001'],
-            ['name' => 'Abena Mensah',  'email' => 'abena@adepaporkhub.com', 'phone' => '0244000002', 'employee_id' => 'APH-0002'],
+            ['name' => 'Kwame Asante',  'email' => 'kwame@adepaporkhub.shop', 'phone' => '0244000001', 'employee_id' => 'APH-0001'],
+            ['name' => 'Abena Mensah',  'email' => 'abena@adepaporkhub.shop', 'phone' => '0244000002', 'employee_id' => 'APH-0002'],
         ];
 
         foreach ($employees as $emp) {

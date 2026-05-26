@@ -17,7 +17,7 @@ return [
         'log' => ['transport' => 'log'],
     ],
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'orders@adepaporkhub.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'orders@adepaporkhub.shop'),
         'name'    => env('MAIL_FROM_NAME', 'Adepa Pork Hub'),
     ],
 ];

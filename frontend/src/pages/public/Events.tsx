@@ -27,7 +27,7 @@ export default function Events() {
       const res = await api.post(`/events/${eventId}/register`)
       const { reference } = res.data.paystack
       openPaystack({
-        email: user.email || `${user.phone}@adepaporkhub.com`,
+        email: user.email || `${user.phone}@adepaporkhub.shop`,
         amountKobo,
         reference,
         metadata: { event_id: eventId },

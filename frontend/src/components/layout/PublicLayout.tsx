@@ -130,7 +130,7 @@ export default function PublicLayout() {
           <div>
             <h4 className="mb-3 text-sm font-semibold text-gold">Contact</h4>
             <ul className="space-y-2 text-sm text-night-100/70">
-              <li>orders@adepaporkhub.com</li>
+              <li>orders@adepaporkhub.shop</li>
               <li>Accra, Ghana</li>
             </ul>
           </div>

@@ -425,7 +425,7 @@ INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `is_act
 VALUES (
   'a0000000-0000-0000-0000-000000000001',
   'Adepa Admin',
-  'admin@adepaporkhub.com',
+  'admin@adepaporkhub.shop',
   '0200000001',
   '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password
   'admin',
@@ -439,7 +439,7 @@ VALUES
 (
   'b0000000-0000-0000-0000-000000000001',
   'Kwame Asante',
-  'kwame@adepaporkhub.com',
+  'kwame@adepaporkhub.shop',
   '0244000001',
   '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password
   'employee',
@@ -450,7 +450,7 @@ VALUES
 (
   'b0000000-0000-0000-0000-000000000002',
   'Abena Mensah',
-  'abena@adepaporkhub.com',
+  'abena@adepaporkhub.shop',
   '0244000002',
   '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password
   'employee',

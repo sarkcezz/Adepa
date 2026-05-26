@@ -101,7 +101,7 @@ export default function Checkout() {
         await finalize()
       } else {
         openPaystack({
-          email: user.email || `${user.phone}@adepaporkhub.com`,
+          email: user.email || `${user.phone}@adepaporkhub.shop`,
           amountKobo: total,
           reference,
           metadata: { customer_id: user.id },
