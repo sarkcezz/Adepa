@@ -55,7 +55,7 @@ export default function RecordSale() {
         stand_name: standName || undefined,
       })
       toast.success(`Sale ${r.data.order_number} recorded.`)
-      navigate('/employee/history')
+      navigate(`/employee/sale/${r.data.id}/receipt`)
     } catch { /* */ } finally { setLoading(false) }
   }
 

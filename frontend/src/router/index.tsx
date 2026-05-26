@@ -15,6 +15,7 @@ import Checkout from '@/pages/public/Checkout'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
+import ResetPassword from '@/pages/auth/ResetPassword'
 import EmployeeLogin from '@/pages/auth/EmployeeLogin'
 
 import Dashboard from '@/pages/dashboard/Dashboard'
@@ -37,6 +38,7 @@ import AdminAnalytics from '@/pages/admin/AdminAnalytics'
 import EmployeeDashboard from '@/pages/employee/EmployeeDashboard'
 import RecordSale from '@/pages/employee/RecordSale'
 import SalesHistory from '@/pages/employee/SalesHistory'
+import SaleReceipt from '@/pages/employee/SaleReceipt'
 
 function ProtectedRoute({ roles }: { roles: string[] }) {
   const { user, token } = useAuthStore()
@@ -58,6 +60,7 @@ export const router = createBrowserRouter([
       { path: '/login',           element: <Login /> },
       { path: '/register',        element: <Register /> },
       { path: '/forgot-password', element: <ForgotPassword /> },
+      { path: '/reset-password',  element: <ResetPassword /> },
       { path: '/employee/login',  element: <EmployeeLogin /> },
     ],
   },
@@ -102,9 +105,10 @@ export const router = createBrowserRouter([
       {
         element: <EmployeeLayout />,
         children: [
-          { path: '/employee',         element: <EmployeeDashboard /> },
-          { path: '/employee/sale',    element: <RecordSale /> },
-          { path: '/employee/history', element: <SalesHistory /> },
+          { path: '/employee',                  element: <EmployeeDashboard /> },
+          { path: '/employee/sale',             element: <RecordSale /> },
+          { path: '/employee/sale/:id/receipt', element: <SaleReceipt /> },
+          { path: '/employee/history',          element: <SalesHistory /> },
         ],
       },
     ],

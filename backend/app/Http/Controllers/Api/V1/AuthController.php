@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Mail\PasswordResetMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -118,13 +122,42 @@ class AuthController extends Controller
     {
         $data = $request->validate(['email' => ['required', 'email']]);
 
+        // Always respond with the same message regardless of whether the email exists.
+        // This prevents email enumeration attacks.
+        $genericResponse = response()->json([
+            'message' => 'If the email exists, a reset link has been sent.',
+        ]);
+
+        $user = User::where('email', $data['email'])->first();
+        if (! $user) {
+            return $genericResponse;
+        }
+
         $token = Str::random(64);
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $data['email']],
             ['token' => Hash::make($token), 'created_at' => now()]
         );
 
-        return response()->json(['message' => 'If the email exists, a reset link has been sent.']);
+        $frontendUrl = rtrim(env('FRONTEND_URL', config('app.url')), '/');
+        $resetUrl    = $frontendUrl . '/reset-password?token=' . $token
+                     . '&email=' . urlencode($data['email']);
+
+        try {
+            Mail::to($user->email)->queue(new PasswordResetMail(
+                resetUrl: $resetUrl,
+                recipientName: $user->name,
+                expiresInMinutes: 60,
+            ));
+        } catch (\Throwable $e) {
+            Log::warning('Password reset email queue failed', [
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+            // Still return generic response — don't reveal failure to the caller.
+        }
+
+        return $genericResponse;
     }
 
     public function resetPassword(Request $request): JsonResponse
@@ -140,9 +173,23 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid or expired reset token.'], 422);
         }
 
-        User::where('email', $data['email'])->update(['password' => Hash::make($data['password'])]);
+        // Token expires after 60 minutes
+        $createdAt = $row->created_at ? Carbon::parse($row->created_at) : null;
+        if (! $createdAt || $createdAt->diffInMinutes(now()) > 60) {
+            DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
+            return response()->json(['message' => 'Reset link has expired. Please request a new one.'], 422);
+        }
+
+        $user = User::where('email', $data['email'])->first();
+        if (! $user) {
+            return response()->json(['message' => 'Invalid reset request.'], 422);
+        }
+
+        $user->update(['password' => Hash::make($data['password'])]);
+        $user->tokens()->delete(); // revoke all active sessions for security
+
         DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
 
-        return response()->json(['message' => 'Password reset successful.']);
+        return response()->json(['message' => 'Password reset successful. You can now sign in with your new password.']);
     }
 }

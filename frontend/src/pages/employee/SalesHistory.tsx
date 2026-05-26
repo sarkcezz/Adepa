@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Printer } from 'lucide-react'
 import { api } from '@/lib/axios'
 import type { Order } from '@/types'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
@@ -24,7 +26,14 @@ export default function SalesHistory() {
         <div className="card overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead className="bg-cream text-left text-xs uppercase text-night-500">
-              <tr><th className="px-4 py-3">Order #</th><th>Time</th><th>Items</th><th>Method</th><th>Total</th></tr>
+              <tr>
+                <th className="px-4 py-3">Order #</th>
+                <th>Time</th>
+                <th>Items</th>
+                <th>Method</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               {orders.map((o) => (
@@ -34,6 +43,14 @@ export default function SalesHistory() {
                   <td>{o.items?.length ?? 0}</td>
                   <td><Badge variant="info">{o.payment_method}</Badge></td>
                   <td className="font-semibold">{formatGhs(o.total_kobo)}</td>
+                  <td className="px-4">
+                    <Link
+                      to={`/employee/sale/${o.id}/receipt`}
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-flame hover:underline"
+                    >
+                      <Printer className="h-3.5 w-3.5" /> Receipt
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
