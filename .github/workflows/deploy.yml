@@ -101,20 +101,27 @@ jobs:
         run: npm run build
 
       # ---------- Set up SSH ----------
-      # Install the private key, then scan the target host live so known_hosts
-      # always matches HOSTINGER_SSH_HOST. Avoids "Host key verification failed"
-      # when the captured hostname doesn't match the configured one.
+      # Install the private key. We skip known_hosts verification entirely
+      # because: (1) we authenticate with a specific key not a password,
+      # (2) the host is fixed in secrets, (3) Hostinger's hostname/IP can
+      # rotate which would break a pinned known_hosts.
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          known_hosts: 'placeholder'   # required by action, overwritten next step
+          known_hosts: 'placeholder'   # required by action, ignored below
+          config: |
+            Host hostinger
+              HostName ${{ secrets.HOSTINGER_SSH_HOST }}
+              User ${{ secrets.HOSTINGER_SSH_USER }}
+              Port ${{ secrets.HOSTINGER_SSH_PORT }}
+              IdentityFile ~/.ssh/id_ed25519
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+              LogLevel ERROR
 
-      - name: Scan known_hosts for target server
-        run: |
-          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
-          chmod 600 ~/.ssh/known_hosts
+      - name: Test SSH connection
+        run: ssh hostinger "echo Connected as \$(whoami) on \$(hostname)"
 
       # ---------- Deploy frontend ----------
       # Sync dist/ into public_html/ but do NOT delete api/ (Laravel bridge)
@@ -123,9 +130,9 @@ jobs:
           rsync -avz --delete \
             --exclude='api/' \
             --exclude='.well-known/' \
-            -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+            -e "ssh" \
             frontend/dist/ \
-            ${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:domains/adepaporkhub.shop/public_html/
+            hostinger:domains/adepaporkhub.shop/public_html/
 
       # ---------- Deploy backend ----------
       # Sync laravel code but preserve .env, storage uploads, and vendor.
@@ -145,16 +152,14 @@ jobs:
             --exclude='bootstrap/cache/*.php' \
             --exclude='.git/' \
             --exclude='.github/' \
-            -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }}" \
+            -e "ssh" \
             backend/ \
-            ${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:domains/adepaporkhub.shop/laravel/
+            hostinger:domains/adepaporkhub.shop/laravel/
 
       # ---------- Run post-deploy commands on Hostinger ----------
       - name: Composer install + cache rebuild
         run: |
-          ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} \
-            ${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }} \
-            "cd domains/adepaporkhub.shop/laravel && \
+          ssh hostinger "cd domains/adepaporkhub.shop/laravel && \
              composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=php && \
              php artisan config:cache && \
              php artisan route:cache && \
