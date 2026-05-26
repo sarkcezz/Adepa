@@ -53,15 +53,7 @@ ssh -i ~/.ssh/adepa_deploy -p 65002 u581126080@your-hostinger-host "echo OK"
 
 You should see `OK` print with no password prompt.
 
-### 3. Capture known_hosts (so SSH doesn't prompt during CI)
-
-```bash
-ssh-keyscan -p 65002 your-hostinger-host
-```
-
-Copy the **whole output** — you'll paste it as the `HOSTINGER_KNOWN_HOSTS` secret.
-
-### 4. Add GitHub secrets
+### 3. Add GitHub secrets
 
 Go to **github.com/sarkcezz/Adepa → Settings → Secrets and variables → Actions → New repository secret**.
 
@@ -73,12 +65,11 @@ Add these:
 | `HOSTINGER_SSH_PORT` | `65002` (Hostinger's standard SSH port — check hPanel) |
 | `HOSTINGER_SSH_USER` | `u581126080` |
 | `HOSTINGER_SSH_KEY` | **Entire contents** of `~/.ssh/adepa_deploy` (including `-----BEGIN/END OPENSSH PRIVATE KEY-----` lines) |
-| `HOSTINGER_KNOWN_HOSTS` | Output of `ssh-keyscan` from step 3 |
 | `VITE_API_BASE_URL` | `https://api.adepaporkhub.shop/api/v1` |
 | `VITE_PAYSTACK_PUBLIC_KEY` | Your `pk_live_...` key from Paystack |
 | `VITE_WHATSAPP_NUMBER` | `233500000000` (or your actual number) |
 
-### 5. Set up the `production` environment (optional but recommended)
+### 4. Set up the `production` environment (optional but recommended)
 
 In **Settings → Environments → New environment → `production`**, you can:
 - Require manual approval before deploys run

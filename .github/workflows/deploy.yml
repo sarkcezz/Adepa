@@ -101,11 +101,20 @@ jobs:
         run: npm run build
 
       # ---------- Set up SSH ----------
+      # Install the private key, then scan the target host live so known_hosts
+      # always matches HOSTINGER_SSH_HOST. Avoids "Host key verification failed"
+      # when the captured hostname doesn't match the configured one.
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          known_hosts: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+          known_hosts: 'placeholder'   # required by action, overwritten next step
+
+      - name: Scan known_hosts for target server
+        run: |
+          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT }} \
+            ${{ secrets.HOSTINGER_SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
 
       # ---------- Deploy frontend ----------
       # Sync dist/ into public_html/ but do NOT delete api/ (Laravel bridge)
