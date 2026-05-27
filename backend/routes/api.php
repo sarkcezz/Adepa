@@ -64,6 +64,7 @@ Route::prefix('v1')->group(function () {
             Route::post('orders/employee-sale',       [OrderController::class, 'employeeSale']);
             Route::get('orders/my-sales',             [OrderController::class, 'mySales']);
             Route::get('orders/my-sales/summary',     [OrderController::class, 'mySalesSummary']);
+            Route::get('orders/customer-lookup',      [OrderController::class, 'customerLookup']);
         });
 
         // ─── ADMIN ───────────────────────────────────────────

@@ -101,20 +101,24 @@ class OrderService
     public function createEmployeeSale(array $payload, string $employeeId): Order
     {
         return DB::transaction(function () use ($payload, $employeeId) {
+            // resolveItems now respects per-line discounts so we can show
+            // savings on the receipt and still send the correct totals to
+            // payments / accounting.
             $items    = $this->resolveItems($payload['items']);
             $subtotal = collect($items)->sum('line_total');
-            $discount = 0;
+            $lineDiscountTotal = collect($items)->sum('line_discount');
+            $orderDiscount = 0;
             $campaignId = null;
 
             if (! empty($payload['promo_code'])) {
                 $check = $this->campaignService->validate($payload['promo_code'], $subtotal);
                 if ($check['valid']) {
-                    $discount   = $check['discount_kobo'];
-                    $campaignId = $check['campaign_id'];
+                    $orderDiscount = $check['discount_kobo'];
+                    $campaignId    = $check['campaign_id'];
                 }
             }
 
-            $total = max(0, $subtotal - $discount);
+            $total = max(0, $subtotal - $orderDiscount);
 
             $order = Order::create([
                 'order_number'    => Order::generateOrderNumber(),
@@ -125,13 +129,18 @@ class OrderService
                 'pickup_location_name' => $payload['stand_name'] ?? 'In-person sale',
                 'subtotal_kobo'   => $subtotal,
                 'delivery_fee_kobo' => 0,
-                'discount_kobo'   => $discount,
+                // discount_kobo on the order = order-level promo + sum of line discounts
+                // so the receipt total = subtotal - discount is consistent.
+                'discount_kobo'   => $orderDiscount + $lineDiscountTotal,
                 'total_kobo'      => $total,
                 'payment_method'  => $payload['payment_method'] ?? 'CASH',
                 'payment_reference' => $payload['payment_reference'] ?? null,
+                // Stash client_reference here too for offline idempotency lookup.
+                'paystack_reference' => $payload['client_reference'] ?? null,
                 'payment_status'  => 'PAID',
                 'source'          => 'EMPLOYEE_SALE',
                 'campaign_id'     => $campaignId,
+                'notes'           => $payload['customer_phone'] ?? null,
             ]);
 
             foreach ($items as $row) {
@@ -144,6 +153,7 @@ class OrderService
                     'weight_grams'    => $product->weight_grams,
                     'quantity'        => $row['quantity'],
                     'unit_price_kobo' => $product->price_kobo,
+                    // subtotal stored is POST line-discount so totals add up.
                     'subtotal_kobo'   => $row['line_total'],
                 ]);
             }
@@ -152,7 +162,9 @@ class OrderService
                 'order_id'   => $order->id,
                 'status'     => 'DELIVERED',
                 'changed_by' => $employeeId,
-                'note'       => 'In-person sale recorded.',
+                'note'       => $lineDiscountTotal > 0
+                    ? "In-person sale recorded with line discounts: -" . number_format($lineDiscountTotal / 100, 2) . " GHS"
+                    : 'In-person sale recorded.',
             ]);
 
             return $order->fresh('items');
@@ -185,12 +197,16 @@ class OrderService
     {
         $resolved = [];
         foreach ($items as $item) {
-            $product = Product::active()->findOrFail($item['product_id']);
-            $qty     = max(1, (int) ($item['quantity'] ?? 1));
+            $product       = Product::active()->findOrFail($item['product_id']);
+            $qty           = max(1, (int) ($item['quantity'] ?? 1));
+            $gross         = $product->price_kobo * $qty;
+            $lineDiscount  = max(0, min($gross, (int) ($item['line_discount_kobo'] ?? 0)));
+
             $resolved[] = [
-                'product'    => $product,
-                'quantity'   => $qty,
-                'line_total' => $product->price_kobo * $qty,
+                'product'       => $product,
+                'quantity'      => $qty,
+                'line_discount' => $lineDiscount,
+                'line_total'    => $gross - $lineDiscount,
             ];
         }
         return $resolved;

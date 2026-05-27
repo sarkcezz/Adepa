@@ -90,19 +90,58 @@ class OrderController extends Controller
     public function employeeSale(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'items'              => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'string', 'exists:products,id'],
-            'items.*.quantity'   => ['required', 'integer', 'min:1'],
-            'customer_id'        => ['nullable', 'string', 'exists:users,id'],
-            'customer_phone'     => ['nullable', 'string'],
-            'payment_method'     => ['required', 'in:CASH,MOMO,CARD'],
-            'payment_reference'  => ['nullable', 'string'],
-            'stand_name'         => ['nullable', 'string'],
-            'promo_code'         => ['nullable', 'string'],
+            'items'                       => ['required', 'array', 'min:1'],
+            'items.*.product_id'          => ['required', 'string', 'exists:products,id'],
+            'items.*.quantity'            => ['required', 'integer', 'min:1'],
+            'items.*.line_discount_kobo'  => ['nullable', 'integer', 'min:0'],
+            'customer_id'                 => ['nullable', 'string', 'exists:users,id'],
+            'customer_phone'              => ['nullable', 'string'],
+            'payment_method'              => ['required', 'in:CASH,MOMO,CARD'],
+            'payment_reference'           => ['nullable', 'string'],
+            'stand_name'                  => ['nullable', 'string'],
+            'promo_code'                  => ['nullable', 'string'],
+            // Idempotency key — supplied by offline queue to prevent dupes
+            // when a sale is replayed after a network blip.
+            'client_reference'            => ['nullable', 'string', 'max:64'],
         ]);
+
+        // Idempotency check — if this client_reference was already saved,
+        // return the existing order instead of creating a duplicate.
+        if (!empty($data['client_reference'])) {
+            $existing = Order::where('employee_id', $request->user()->id)
+                ->where('source', 'EMPLOYEE_SALE')
+                ->where('paystack_reference', $data['client_reference'])
+                ->first();
+            if ($existing) {
+                return response()->json($existing->load('items'), 200);
+            }
+        }
 
         $order = $this->orderService->createEmployeeSale($data, $request->user()->id);
         return response()->json($order, 201);
+    }
+
+    /**
+     * Look up a customer by phone for the POS — used to auto-fill the
+     * cart's customer info when an existing customer rings up a sale.
+     */
+    public function customerLookup(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'phone' => ['required', 'string', 'min:6'],
+        ]);
+
+        $phone = preg_replace('/\s+/', '', $data['phone']);
+
+        $customer = \App\Models\User::where('role', 'customer')
+            ->where(function ($q) use ($phone) {
+                $q->where('phone', $phone)
+                  ->orWhere('phone', 'like', '%' . substr($phone, -9));
+            })
+            ->select('id', 'name', 'email', 'phone')
+            ->first();
+
+        return response()->json(['customer' => $customer]);
     }
 
     public function mySales(Request $request): JsonResponse
