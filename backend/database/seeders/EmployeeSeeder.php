@@ -11,8 +11,8 @@ class EmployeeSeeder extends Seeder
     public function run(): void
     {
         $employees = [
-            ['name' => 'Kwame Asante',  'email' => 'kwame@adepaporkhub.shop', 'phone' => '0244000001', 'employee_id' => 'APH-0001'],
-            ['name' => 'Abena Mensah',  'email' => 'abena@adepaporkhub.shop', 'phone' => '0244000002', 'employee_id' => 'APH-0002'],
+            ['name' => 'Kwame Asante',  'email' => 'kwame@adepaporkhub.shop', 'phone' => '0244000001', 'employee_id' => 'APH-0001', 'position' => 'manager'],
+            ['name' => 'Abena Mensah',  'email' => 'abena@adepaporkhub.shop', 'phone' => '0244000002', 'employee_id' => 'APH-0002', 'position' => 'cashier'],
         ];
 
         foreach ($employees as $emp) {
@@ -24,6 +24,7 @@ class EmployeeSeeder extends Seeder
                     'password'    => Hash::make('Employee@2025!'),
                     'role'        => 'employee',
                     'employee_id' => $emp['employee_id'],
+                    'position'    => $emp['position'],
                     'is_active'   => true,
                     'force_password_change' => true,
                 ]

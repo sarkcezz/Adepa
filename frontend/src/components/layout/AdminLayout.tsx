@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, Link } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingBag, Package, Megaphone, Calendar,
-  Tag, Users, UserCircle, BarChart3, LogOut, Menu, X,
+  Tag, Users, UserCircle, BarChart3, FileText, LogOut, Menu, X,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -16,6 +16,7 @@ const NAV = [
   { to: '/admin/employees',      label: 'Employees',     icon: Users },
   { to: '/admin/customers',      label: 'Customers',     icon: UserCircle },
   { to: '/admin/analytics',      label: 'Analytics',     icon: BarChart3 },
+  { to: '/admin/audit-logs',     label: 'Audit log',     icon: FileText },
 ]
 
 export default function AdminLayout() {

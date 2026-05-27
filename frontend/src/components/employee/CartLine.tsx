@@ -9,7 +9,8 @@ interface Props {
   onIncrement: () => void
   onDecrement: () => void
   onRemove: () => void
-  onDiscount: () => void
+  /** Omit to hide the discount button (no permission). */
+  onDiscount?: () => void
 }
 
 /**
@@ -63,18 +64,20 @@ export function CartLine({
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onDiscount}
-            className={`grid h-8 w-8 place-items-center rounded-full cursor-pointer transition-colors
-              ${lineDiscountKobo > 0
-                ? 'bg-gold/20 text-gold-700 hover:bg-gold/30'
-                : 'bg-night-100 text-night-600 hover:bg-night-200'}`}
-            aria-label={lineDiscountKobo > 0 ? 'Edit line discount' : 'Add line discount'}
-            title={lineDiscountKobo > 0 ? `Discount: -${formatGhs(lineDiscountKobo)}` : 'Add discount'}
-          >
-            <Tag className="h-3.5 w-3.5" />
-          </button>
+          {onDiscount && (
+            <button
+              type="button"
+              onClick={onDiscount}
+              className={`grid h-8 w-8 place-items-center rounded-full cursor-pointer transition-colors
+                ${lineDiscountKobo > 0
+                  ? 'bg-gold/20 text-gold-700 hover:bg-gold/30'
+                  : 'bg-night-100 text-night-600 hover:bg-night-200'}`}
+              aria-label={lineDiscountKobo > 0 ? 'Edit line discount' : 'Add line discount'}
+              title={lineDiscountKobo > 0 ? `Discount: -${formatGhs(lineDiscountKobo)}` : 'Add discount'}
+            >
+              <Tag className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 

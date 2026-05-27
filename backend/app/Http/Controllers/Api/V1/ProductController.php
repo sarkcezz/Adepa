@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Product;
+use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -58,12 +59,14 @@ class ProductController extends Controller
         ]);
 
         $product = Product::create($data);
+        AuditService::log('product.created', $product, $data);
         return response()->json($product, 201);
     }
 
     public function update(Request $request, string $id): JsonResponse
     {
         $product = Product::findOrFail($id);
+        $before  = $product->only(array_keys($request->all()));
 
         $data = $request->validate([
             'name'         => ['sometimes', 'string'],
@@ -81,6 +84,7 @@ class ProductController extends Controller
         ]);
 
         $product->update($data);
+        AuditService::log('product.updated', $product, ['before' => $before, 'after' => $data]);
         return response()->json($product);
     }
 
@@ -88,6 +92,10 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
         $product->update(['is_active' => ! $product->is_active]);
+        AuditService::log(
+            $product->is_active ? 'product.activated' : 'product.deactivated',
+            $product,
+        );
         return response()->json($product);
     }
 

@@ -13,7 +13,15 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'phone', 'password', 'role',
-        'employee_id', 'is_active', 'force_password_change',
+        'employee_id', 'position', 'is_active', 'force_password_change',
+    ];
+
+    /** Employee position hierarchy — higher number = more privileges. */
+    public const POSITION_RANKS = [
+        'cashier'    => 1,
+        'stand_lead' => 2,
+        'supervisor' => 3,
+        'manager'    => 4,
     ];
 
     protected $hidden = [
@@ -42,6 +50,33 @@ class User extends Authenticatable
     public function isCustomer(): bool
     {
         return $this->role === 'customer';
+    }
+
+    /** Does this user (an employee) have at least the given position? */
+    public function hasPosition(string $minimum): bool
+    {
+        // Admin gets everything regardless.
+        if ($this->role === 'admin') return true;
+
+        $userRank = self::POSITION_RANKS[$this->position ?? 'cashier'] ?? 0;
+        $minRank  = self::POSITION_RANKS[$minimum] ?? 0;
+
+        return $userRank >= $minRank;
+    }
+
+    /** Permission check used by frontend hooks and middleware. */
+    public function can(string $ability, mixed $arguments = []): bool
+    {
+        return match ($ability) {
+            'sell'             => $this->isEmployee() || $this->isAdmin(),
+            'apply_discount'   => $this->hasPosition('stand_lead'),
+            'hold_cart'        => $this->hasPosition('stand_lead'),
+            'void_sale'        => $this->hasPosition('supervisor'),
+            'refund_sale'      => $this->hasPosition('supervisor'),
+            'manage_employees' => $this->isAdmin(),
+            'view_all_sales'   => $this->isAdmin() || $this->hasPosition('manager'),
+            default            => parent::can($ability, $arguments),
+        };
     }
 
     public function addresses()

@@ -34,6 +34,7 @@ import AdminCampaigns from '@/pages/admin/AdminCampaigns'
 import AdminEmployees from '@/pages/admin/AdminEmployees'
 import AdminCustomers from '@/pages/admin/AdminCustomers'
 import AdminAnalytics from '@/pages/admin/AdminAnalytics'
+import AdminAuditLogs from '@/pages/admin/AdminAuditLogs'
 
 import EmployeeDashboard from '@/pages/employee/EmployeeDashboard'
 import RecordSale from '@/pages/employee/RecordSale'
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
           { path: '/admin/employees',      element: <AdminEmployees /> },
           { path: '/admin/customers',      element: <AdminCustomers /> },
           { path: '/admin/analytics',      element: <AdminAnalytics /> },
+          { path: '/admin/audit-logs',     element: <AdminAuditLogs /> },
         ],
       },
     ],

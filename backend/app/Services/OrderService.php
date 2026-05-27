@@ -75,6 +75,13 @@ class OrderService
                     'unit_price_kobo' => $product->price_kobo,
                     'subtotal_kobo'   => $row['line_total'],
                 ]);
+
+                // Decrement stock atomically (clamped at 0 so a race condition
+                // can't make stock_qty go negative).
+                Product::where('id', $product->id)
+                    ->update([
+                        'stock_qty' => DB::raw("GREATEST(stock_qty - {$row['quantity']}, 0)"),
+                    ]);
             }
 
             if ($campaignId && $discount > 0) {
@@ -156,6 +163,13 @@ class OrderService
                     // subtotal stored is POST line-discount so totals add up.
                     'subtotal_kobo'   => $row['line_total'],
                 ]);
+
+                // Decrement stock atomically. EMPLOYEE_SALE is always "PAID"
+                // so we deduct immediately. GREATEST() guards against drift.
+                Product::where('id', $product->id)
+                    ->update([
+                        'stock_qty' => DB::raw("GREATEST(stock_qty - {$row['quantity']}, 0)"),
+                    ]);
             }
 
             OrderStatusHistory::create([

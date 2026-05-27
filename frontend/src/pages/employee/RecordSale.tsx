@@ -22,6 +22,7 @@ import { OfflineBanner } from '@/components/employee/OfflineBanner'
 import { useOfflineQueue } from '@/hooks/useOfflineQueue'
 import { useHeldCarts } from '@/hooks/useHeldCarts'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
+import { usePermission } from '@/hooks/usePermission'
 
 interface CartItem {
   product_id: string
@@ -71,6 +72,10 @@ export default function RecordSale() {
   // ── Hooks ─────────────────────────────────────────────────────────────
   const offline = useOfflineQueue()
   const holds   = useHeldCarts()
+
+  // Permission gates — server enforces too, this just hides controls
+  const canDiscount = usePermission('apply_discount')
+  const canHold     = usePermission('hold_cart')
 
   const searchRef = useRef<HTMLInputElement | null>(null)
 
@@ -329,18 +334,20 @@ export default function RecordSale() {
           <h1 className="display text-xl font-bold sm:text-2xl">Sell</h1>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setHoldsOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-night-700 ring-1 ring-night-200 cursor-pointer hover:bg-flame-50 hover:text-flame hover:ring-flame/30"
-            >
-              <Pause className="h-3.5 w-3.5" />
-              Holds
-              {holds.count > 0 && (
-                <span className="ml-1 grid h-4 min-w-4 place-items-center rounded-full bg-flame px-1 text-[10px] font-bold text-white">
-                  {holds.count}
-                </span>
-              )}
-            </button>
+            {canHold && (
+              <button
+                onClick={() => setHoldsOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-night-700 ring-1 ring-night-200 cursor-pointer hover:bg-flame-50 hover:text-flame hover:ring-flame/30"
+              >
+                <Pause className="h-3.5 w-3.5" />
+                Holds
+                {holds.count > 0 && (
+                  <span className="ml-1 grid h-4 min-w-4 place-items-center rounded-full bg-flame px-1 text-[10px] font-bold text-white">
+                    {holds.count}
+                  </span>
+                )}
+              </button>
+            )}
             <button
               onClick={() => setScannerOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-night-700 ring-1 ring-night-200 cursor-pointer hover:bg-flame-50 hover:text-flame hover:ring-flame/30"
@@ -451,12 +458,14 @@ export default function RecordSale() {
           </div>
           {cart.length > 0 && (
             <div className="flex gap-1">
-              <button
-                onClick={hold}
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-night-700 cursor-pointer hover:bg-night-100"
-              >
-                <Pause className="h-3 w-3" /> Hold
-              </button>
+              {canHold && (
+                <button
+                  onClick={hold}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-night-700 cursor-pointer hover:bg-night-100"
+                >
+                  <Pause className="h-3 w-3" /> Hold
+                </button>
+              )}
               <button
                 onClick={clearCart}
                 className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-flame cursor-pointer hover:bg-flame-50"
@@ -489,7 +498,7 @@ export default function RecordSale() {
                   onIncrement={() => increment(l.product_id)}
                   onDecrement={() => decrement(l.product_id)}
                   onRemove={() => removeLine(l.product_id)}
-                  onDiscount={() => setDiscountFor(l.product_id)}
+                  onDiscount={canDiscount ? () => setDiscountFor(l.product_id) : undefined}
                 />
               )
             })

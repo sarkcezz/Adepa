@@ -1,5 +1,7 @@
 export type Role = 'customer' | 'admin' | 'employee'
 
+export type EmployeePosition = 'cashier' | 'stand_lead' | 'supervisor' | 'manager'
+
 export interface User {
   id: string
   name: string
@@ -7,6 +9,7 @@ export interface User {
   phone: string
   role: Role
   employee_id?: string | null
+  position?: EmployeePosition | null
   is_active: boolean
   force_password_change?: boolean
   created_at?: string

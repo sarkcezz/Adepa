@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\AnalyticsController;
 use App\Http\Controllers\Api\V1\AnnouncementController;
+use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CampaignController;
 use App\Http\Controllers\Api\V1\CustomerController;
@@ -119,6 +120,8 @@ Route::prefix('v1')->group(function () {
             Route::get('analytics/customers',          [AnalyticsController::class, 'customers']);
 
             Route::post('upload/image',                [UploadController::class, 'image']);
+
+            Route::get('audit-logs',                   [AuditLogController::class, 'index']);
         });
     });
 });
