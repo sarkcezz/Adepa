@@ -74,9 +74,11 @@ class AnalyticsService
 
     public function employeePerformance(): array
     {
-        return Order::where('source', 'EMPLOYEE_SALE')
-            ->whereNotNull('employee_id')
+        return Order::query()
+            ->from('orders')
             ->join('users', 'users.id', '=', 'orders.employee_id')
+            ->where('orders.source', 'EMPLOYEE_SALE')
+            ->whereNotNull('orders.employee_id')
             ->select(
                 'users.id',
                 'users.name',
@@ -108,8 +110,10 @@ class AnalyticsService
 
     public function topCustomers(int $limit = 10): array
     {
-        return Order::where('payment_status', 'PAID')
+        return Order::query()
+            ->from('orders')
             ->join('users', 'users.id', '=', 'orders.customer_id')
+            ->where('orders.payment_status', 'PAID')
             ->select(
                 'users.id',
                 'users.name',

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import { ImageUpload } from '@/components/admin/ImageUpload'
 import { formatGhs, formatWeight } from '@/lib/formatters'
 import { toast } from 'sonner'
 
@@ -126,7 +127,14 @@ export default function AdminProducts() {
           <Input label="Price (kobo)" type="number" hint="In pesewas: GHS 5 = 500" value={edit.price_kobo} onChange={(e) => setEdit({ ...edit, price_kobo: Number(e.target.value) })} />
           <Input label="Heat (0-5)" type="number" min={0} max={5} value={edit.heat_level} onChange={(e) => setEdit({ ...edit, heat_level: Number(e.target.value) })} />
           <Input label="Stock" type="number" value={edit.stock_qty} onChange={(e) => setEdit({ ...edit, stock_qty: Number(e.target.value) })} />
-          <Input label="Image URL" value={edit.image_url || ''} onChange={(e) => setEdit({ ...edit, image_url: e.target.value })} />
+
+          <ImageUpload
+            label="Product image"
+            value={edit.image_url}
+            onChange={(url) => setEdit({ ...edit, image_url: url || '' })}
+            hint="Square 800×800 works best. Will be optimized by Cloudinary."
+          />
+
           <div className="sm:col-span-2">
             <label className="label">Description</label>
             <textarea className="input" rows={3} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />

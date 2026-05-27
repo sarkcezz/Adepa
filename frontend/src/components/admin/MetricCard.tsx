@@ -17,14 +17,28 @@ const accentMap: Record<string, string> = {
 
 export function MetricCard({ label, value, icon: Icon, hint, accent = 'flame' }: Props) {
   return (
-    <div className="card flex items-start gap-4">
-      <div className={`grid h-12 w-12 place-items-center rounded-xl ${accentMap[accent]}`}>
-        <Icon className="h-6 w-6" />
+    <div className="card flex items-start gap-3 overflow-hidden">
+      <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${accentMap[accent]}`}>
+        <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-night-500">{label}</p>
-        <p className="mt-0.5 text-2xl font-bold text-night-900">{value}</p>
-        {hint && <p className="mt-0.5 text-xs text-night-500">{hint}</p>}
+        <p
+          className="truncate text-[11px] font-semibold uppercase tracking-wider text-night-500"
+          title={label}
+        >
+          {label}
+        </p>
+        <p
+          className="mt-0.5 truncate text-xl font-bold text-night-900 sm:text-2xl"
+          title={String(value)}
+        >
+          {value}
+        </p>
+        {hint && (
+          <p className="mt-0.5 truncate text-xs text-night-500" title={hint}>
+            {hint}
+          </p>
+        )}
       </div>
     </div>
   )
