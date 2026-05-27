@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -33,6 +34,13 @@ export default function EmployeeLogin() {
           <Input label="Password" type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           <Button type="submit" loading={loading} variant="gold" className="w-full">Sign in to portal</Button>
         </form>
+
+        <div className="mt-6 rounded-xl bg-night-50 px-3 py-2.5 text-center text-xs text-night-600">
+          Not staff?{' '}
+          <Link to="/login" className="font-semibold text-flame hover:underline">
+            Customer sign in
+          </Link>
+        </div>
       </div>
     </div>
   )

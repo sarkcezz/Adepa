@@ -43,6 +43,13 @@ export default function Login() {
         <p className="mt-6 text-center text-sm text-night-600">
           New here? <Link to="/register" className="font-semibold text-flame hover:underline">Create an account</Link>
         </p>
+
+        <div className="mt-4 rounded-xl bg-night-50 px-3 py-2.5 text-center text-xs text-night-600">
+          Adepa team member?{' '}
+          <Link to="/employee/login" className="font-semibold text-flame hover:underline">
+            Use the staff portal →
+          </Link>
+        </div>
       </div>
     </div>
   )
