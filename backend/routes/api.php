@@ -49,8 +49,16 @@ Route::prefix('v1')->group(function () {
         // order's customer OR the employee who recorded the sale).
         // Lifted out of role:customer,admin so employees can view their
         // own sale receipt at /orders/{id} too.
-        Route::get('orders/{id}',                [OrderController::class, 'show']);
-        Route::get('orders/{id}/status',         [OrderController::class, 'status']);
+        //
+        // Constraint: {id} must look like a UUID. Without this, the
+        // wildcard would swallow sibling paths like /orders/my-sales,
+        // /orders/customer-lookup, /orders/employee-sale that are
+        // registered LATER in the file — Laravel matches the first
+        // route that fits, and "my-sales" trivially fits {id}.
+        Route::get('orders/{id}', [OrderController::class, 'show'])
+            ->where('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
+        Route::get('orders/{id}/status', [OrderController::class, 'status'])
+            ->where('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
         // ─── CUSTOMER ────────────────────────────────────────
         Route::middleware('role:customer,admin')->group(function () {
