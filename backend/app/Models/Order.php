@@ -62,10 +62,25 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at');
     }
 
+    /**
+     * Generate the next sequential order number (APH-NNNNNN).
+     *
+     * Bug fix: previously sorted by created_at which doesn't track the
+     * sequence — older orders could have higher numbers from seeders or
+     * data backfills, breaking the unique constraint on the next insert.
+     * Now we extract the numeric portion and take MAX(...) directly.
+     *
+     * Concurrent inserts can still collide; createEmployeeSale and
+     * createOnlineOrder wrap the insert in a retry loop to handle that.
+     */
     public static function generateOrderNumber(): string
     {
-        $last = static::orderByDesc('created_at')->value('order_number');
-        $next = $last ? ((int) substr($last, 4)) + 1 : 1;
+        $max = static::query()
+            ->where('order_number', 'like', 'APH-%')
+            ->selectRaw('MAX(CAST(SUBSTRING(order_number, 5) AS UNSIGNED)) as max_num')
+            ->value('max_num');
+
+        $next = ((int) $max) + 1;
         return 'APH-' . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
     }
 }

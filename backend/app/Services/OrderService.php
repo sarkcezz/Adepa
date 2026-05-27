@@ -18,6 +18,23 @@ class OrderService
 
     public function createOnlineOrder(array $payload, string $customerId): Order
     {
+        // Retry once on order_number collision (see createEmployeeSale).
+        $attempts = 0;
+        retry:
+        $attempts++;
+        try {
+            return $this->doCreateOnlineOrder($payload, $customerId);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            if ($attempts < 3 && str_contains($e->getMessage(), 'order_number')) {
+                usleep(50_000);
+                goto retry;
+            }
+            throw $e;
+        }
+    }
+
+    protected function doCreateOnlineOrder(array $payload, string $customerId): Order
+    {
         return DB::transaction(function () use ($payload, $customerId) {
             $items   = $this->resolveItems($payload['items']);
             $subtotal = collect($items)->sum('line_total');
@@ -106,6 +123,24 @@ class OrderService
     }
 
     public function createEmployeeSale(array $payload, string $employeeId): Order
+    {
+        // Retry once if the order_number collides with a concurrent insert.
+        // Beyond two attempts something is structurally wrong — let it bubble.
+        $attempts = 0;
+        retry:
+        $attempts++;
+        try {
+            return $this->doCreateEmployeeSale($payload, $employeeId);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            if ($attempts < 3 && str_contains($e->getMessage(), 'order_number')) {
+                usleep(50_000); // 50ms backoff before re-querying MAX
+                goto retry;
+            }
+            throw $e;
+        }
+    }
+
+    protected function doCreateEmployeeSale(array $payload, string $employeeId): Order
     {
         return DB::transaction(function () use ($payload, $employeeId) {
             // resolveItems now respects per-line discounts so we can show
