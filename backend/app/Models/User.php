@@ -64,8 +64,13 @@ class User extends Authenticatable
         return $userRank >= $minRank;
     }
 
-    /** Permission check used by frontend hooks and middleware. */
-    public function can(string $ability, mixed $arguments = []): bool
+    /**
+     * Permission check used by middleware and any server-side gate.
+     * Named hasPermission() (not can()) because Laravel's Authorizable
+     * trait already defines can() with an incompatible signature —
+     * overriding it would be a fatal type error.
+     */
+    public function hasPermission(string $ability): bool
     {
         return match ($ability) {
             'sell'             => $this->isEmployee() || $this->isAdmin(),
@@ -75,7 +80,7 @@ class User extends Authenticatable
             'refund_sale'      => $this->hasPosition('supervisor'),
             'manage_employees' => $this->isAdmin(),
             'view_all_sales'   => $this->isAdmin() || $this->hasPosition('manager'),
-            default            => parent::can($ability, $arguments),
+            default            => false,
         };
     }
 
