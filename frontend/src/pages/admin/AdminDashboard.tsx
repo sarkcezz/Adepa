@@ -40,13 +40,15 @@ export default function AdminDashboard() {
         <p className="text-sm text-night-500">Live overview of Adepa Pork Hub.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <MetricCard label="Revenue (all-time)" value={formatGhs(summary?.total_revenue_kobo || 0)} icon={DollarSign} accent="flame" />
-        <MetricCard label="Orders today"       value={summary?.orders_today || 0} icon={ShoppingBag} accent="gold" />
-        <MetricCard label="Orders this month"  value={summary?.orders_this_month || 0} icon={TrendingUp} accent="blue" />
-        <MetricCard label="Customers"          value={summary?.total_customers || 0} icon={Users} accent="green" />
-        <MetricCard label="Active products"    value={summary?.active_products || 0} icon={Package} accent="gold" />
-        <MetricCard label="Pending orders"     value={summary?.pending_orders || 0} icon={AlertTriangle} accent="flame" />
+      {/* KPI grid: 1 col on phone, 2 on tablet, 3 on desktop — gives each
+          card enough width for long currency strings like GHS 1,234,567. */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard label="Revenue (all-time)" value={formatGhs(summary?.total_revenue_kobo || 0)} icon={DollarSign}    accent="flame" />
+        <MetricCard label="Orders today"       value={summary?.orders_today || 0}                  icon={ShoppingBag}   accent="gold"  />
+        <MetricCard label="Orders this month"  value={summary?.orders_this_month || 0}             icon={TrendingUp}    accent="blue"  />
+        <MetricCard label="Customers"          value={summary?.total_customers || 0}               icon={Users}         accent="green" />
+        <MetricCard label="Active products"    value={summary?.active_products || 0}               icon={Package}       accent="gold"  />
+        <MetricCard label="Pending orders"     value={summary?.pending_orders || 0}                icon={AlertTriangle} accent="flame" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
