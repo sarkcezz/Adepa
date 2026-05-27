@@ -23,6 +23,8 @@ import { useOfflineQueue } from '@/hooks/useOfflineQueue'
 import { useHeldCarts } from '@/hooks/useHeldCarts'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
 import { usePermission } from '@/hooks/usePermission'
+import { useAuth } from '@/hooks/useAuth'
+import { openPaystack } from '@/lib/paystack'
 
 interface CartItem {
   product_id: string
@@ -242,14 +244,10 @@ export default function RecordSale() {
   }
 
   // ── Submit ────────────────────────────────────────────────────────────
-  async function submit() {
-    if (cart.length === 0) return toast.error('Cart is empty.')
-    if (paymentMethod !== 'CASH' && !paymentRef.trim()) {
-      return toast.error(`Enter the ${paymentMethod} reference.`)
-    }
-
-    setSubmitting(true)
-
+  // Posts the sale to the server. Caller supplies optional paystackRef
+  // when the payment was processed live through Paystack (replaces any
+  // manually-typed reference).
+  async function postSale(paystackRef?: string) {
     const payload = {
       items: cart.map((l) => ({
         product_id: l.product_id,
@@ -258,7 +256,7 @@ export default function RecordSale() {
       })),
       customer_phone: customerPhone || undefined,
       payment_method: paymentMethod,
-      payment_reference: paymentRef || undefined,
+      payment_reference: paystackRef || paymentRef || undefined,
       promo_code: promoCode || undefined,
       stand_name: stand || undefined,
     }
@@ -279,7 +277,7 @@ export default function RecordSale() {
       recordRecents(cart)
       navigate(`/employee/sale/${r.data.id}/receipt`)
     } catch (e: any) {
-      // Network failure → queue. HTTP error → bubble up.
+      // Network failure → queue. HTTP error → bubble up (axios interceptor toasts it).
       if (!e?.response) {
         await offline.enqueue(payload)
         toast.success('Saved offline. Will sync when you reconnect.')
@@ -288,6 +286,53 @@ export default function RecordSale() {
       }
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  // High-level submit. Decides whether to charge live via Paystack first
+  // (MOMO/CARD with no manual reference typed) or record directly
+  // (CASH; or MOMO/CARD when the employee already has a transaction
+  // reference from elsewhere e.g. customer's USSD push).
+  const { user } = useAuth()
+  function submit() {
+    if (cart.length === 0) return toast.error('Cart is empty.')
+    setSubmitting(true)
+
+    // Live Paystack charge — popup
+    const wantsPaystack = (paymentMethod === 'MOMO' || paymentMethod === 'CARD') && !paymentRef.trim()
+
+    if (wantsPaystack) {
+      // Paystack needs an email. Prefer customer phone-derived, then employee email,
+      // then a generic POS one — Paystack only uses it for the receipt.
+      const email =
+        (customerPhone ? `${customerPhone.replace(/\D/g, '')}@adepaporkhub.shop` : null)
+        || user?.email
+        || 'pos@adepaporkhub.shop'
+
+      openPaystack({
+        email,
+        amountKobo: total,
+        metadata: {
+          employee_id: user?.employee_id,
+          stand: stand || undefined,
+          customer_phone: customerPhone || undefined,
+          channel: 'EMPLOYEE_POS',
+        },
+        onSuccess: (paystackRef) => {
+          // Charge succeeded → record the sale with the live reference
+          postSale(paystackRef).catch(() => {
+            toast.error('Payment took, but sale failed to save. Use the reference below.')
+            toast.message(`Paystack reference: ${paystackRef}`, { duration: 30000 })
+          })
+        },
+        onClose: () => {
+          setSubmitting(false)
+          toast.info('Payment cancelled.')
+        },
+      })
+    } else {
+      // CASH, or MOMO/CARD with employee-typed reference → record directly
+      postSale()
     }
   }
 
@@ -568,9 +613,13 @@ export default function RecordSale() {
           {paymentMethod !== 'CASH' && (
             <Input
               className="mt-2"
-              label={paymentMethod === 'MOMO' ? 'MoMo transaction ID' : 'Card reference'}
+              label={`${paymentMethod === 'MOMO' ? 'MoMo transaction ID' : 'Card reference'} (optional)`}
               value={paymentRef}
               onChange={(e) => setPaymentRef(e.target.value)}
+              placeholder="Leave blank to charge via Paystack"
+              hint={paymentRef.trim()
+                ? 'Manual reference — sale recorded directly.'
+                : 'Empty → Complete sale opens Paystack popup for live charge.'}
             />
           )}
         </div>
@@ -583,7 +632,11 @@ export default function RecordSale() {
           size="xl"
           className="mt-4 w-full"
         >
-          {cart.length === 0 ? 'Add items to start' : `Complete sale · ${formatGhs(total)}`}
+          {cart.length === 0
+            ? 'Add items to start'
+            : (paymentMethod !== 'CASH' && !paymentRef.trim())
+              ? `Charge ${formatGhs(total)} via Paystack`
+              : `Complete sale · ${formatGhs(total)}`}
         </Button>
         <p className="mt-2 text-center text-[10px] text-night-400">
           Press <kbd className="rounded bg-night-100 px-1 font-mono">Ctrl/⌘ + Enter</kbd> to submit
