@@ -17,6 +17,7 @@ import Register from '@/pages/auth/Register'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import ResetPassword from '@/pages/auth/ResetPassword'
 import EmployeeLogin from '@/pages/auth/EmployeeLogin'
+import ForcePasswordChange from '@/pages/auth/ForcePasswordChange'
 
 import Dashboard from '@/pages/dashboard/Dashboard'
 import Orders from '@/pages/dashboard/Orders'
@@ -35,6 +36,7 @@ import AdminEmployees from '@/pages/admin/AdminEmployees'
 import AdminCustomers from '@/pages/admin/AdminCustomers'
 import AdminAnalytics from '@/pages/admin/AdminAnalytics'
 import AdminAuditLogs from '@/pages/admin/AdminAuditLogs'
+import AdminProfile from '@/pages/admin/AdminProfile'
 
 import EmployeeDashboard from '@/pages/employee/EmployeeDashboard'
 import RecordSale from '@/pages/employee/RecordSale'
@@ -45,6 +47,18 @@ function ProtectedRoute({ roles }: { roles: string[] }) {
   const { user, token } = useAuthStore()
   if (!token || !user) return <Navigate to="/login" replace />
   if (!roles.includes(user.role)) return <Navigate to="/" replace />
+  // Forced password change — until the flag is cleared, every nested
+  // route renders the change-password interstitial instead of its
+  // intended page. The Profile page lives outside this gate so the
+  // change form itself remains reachable.
+  if (user.force_password_change) return <Navigate to="/change-password" replace />
+  return <Outlet />
+}
+
+/** Bare guard for the /change-password route — needs auth but not role check. */
+function AuthOnly() {
+  const { user, token } = useAuthStore()
+  if (!token || !user) return <Navigate to="/login" replace />
   return <Outlet />
 }
 
@@ -97,6 +111,7 @@ export const router = createBrowserRouter([
           { path: '/admin/customers',      element: <AdminCustomers /> },
           { path: '/admin/analytics',      element: <AdminAnalytics /> },
           { path: '/admin/audit-logs',     element: <AdminAuditLogs /> },
+          { path: '/admin/profile',        element: <AdminProfile /> },
         ],
       },
     ],
@@ -113,6 +128,14 @@ export const router = createBrowserRouter([
           { path: '/employee/history',          element: <SalesHistory /> },
         ],
       },
+    ],
+  },
+  {
+    // Bare auth route — sits OUTSIDE ProtectedRoute so it can render
+    // even while force_password_change=true (otherwise we'd infinite-loop).
+    element: <AuthOnly />,
+    children: [
+      { path: '/change-password', element: <ForcePasswordChange /> },
     ],
   },
 ])

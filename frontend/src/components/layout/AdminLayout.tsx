@@ -17,6 +17,7 @@ const NAV = [
   { to: '/admin/customers',      label: 'Customers',     icon: UserCircle },
   { to: '/admin/analytics',      label: 'Analytics',     icon: BarChart3 },
   { to: '/admin/audit-logs',     label: 'Audit log',     icon: FileText },
+  { to: '/admin/profile',        label: 'My account',    icon: UserCircle, divider: true },
 ]
 
 export default function AdminLayout() {
@@ -37,8 +38,15 @@ export default function AdminLayout() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-white/70 md:inline">{user?.name}</span>
             <Link to="/" className="text-sm text-white/70 hover:text-white">View site</Link>
+            <Link
+              to="/admin/profile"
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+              title="My account"
+            >
+              <UserCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">{user?.name?.split(' ')[0]}</span>
+            </Link>
           </div>
         </div>
       </header>
