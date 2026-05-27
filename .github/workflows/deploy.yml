@@ -101,27 +101,48 @@ jobs:
         run: npm run build
 
       # ---------- Set up SSH ----------
-      # Install the private key. We skip known_hosts verification entirely
-      # because: (1) we authenticate with a specific key not a password,
-      # (2) the host is fixed in secrets, (3) Hostinger's hostname/IP can
-      # rotate which would break a pinned known_hosts.
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          known_hosts: 'placeholder'   # required by action, ignored below
-          config: |
-            Host hostinger
-              HostName ${{ secrets.HOSTINGER_SSH_HOST }}
-              User ${{ secrets.HOSTINGER_SSH_USER }}
-              Port ${{ secrets.HOSTINGER_SSH_PORT }}
-              IdentityFile ~/.ssh/id_ed25519
-              StrictHostKeyChecking no
-              UserKnownHostsFile /dev/null
-              LogLevel ERROR
+      # Manually write the key to a file so we control exactly how it's
+      # stored. The shimataro action sometimes loses trailing newlines on
+      # ed25519 keys, which causes "Permission denied (publickey)".
+      - name: Install SSH key (manual)
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Write key. Force trailing newline; OpenSSH refuses keys without one.
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          # Strip CRLF if present (GitHub UI sometimes injects them)
+          sed -i 's/\r$//' ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # SSH config with strict checking off
+          cat > ~/.ssh/config <<EOF
+          Host hostinger
+            HostName ${{ secrets.HOSTINGER_SSH_HOST }}
+            User ${{ secrets.HOSTINGER_SSH_USER }}
+            Port ${{ secrets.HOSTINGER_SSH_PORT }}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            BatchMode yes
+            LogLevel ERROR
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Validate SSH key format
+        run: |
+          echo "=== Key file size and header ==="
+          wc -c ~/.ssh/deploy_key
+          head -1 ~/.ssh/deploy_key
+          tail -1 ~/.ssh/deploy_key
+          echo "=== ssh-keygen verification ==="
+          ssh-keygen -y -f ~/.ssh/deploy_key | head -c 80 && echo " (truncated)"
 
       - name: Test SSH connection
-        run: ssh hostinger "echo Connected as \$(whoami) on \$(hostname)"
+        run: ssh -vvv hostinger "echo Connected as \$(whoami) on \$(hostname)" 2>&1 | tail -40
 
       # ---------- Deploy frontend ----------
       # Sync dist/ into public_html/ but do NOT delete api/ (Laravel bridge)
