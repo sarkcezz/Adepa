@@ -44,11 +44,17 @@ Route::prefix('v1')->group(function () {
         Route::get('notifications/my',           [NotificationController::class, 'mine']);
         Route::patch('notifications/{id}/read',  [NotificationController::class, 'markRead']);
 
+        // Show one order — accessible to any authenticated user; the
+        // controller's show() method authorizes per record (admin OR the
+        // order's customer OR the employee who recorded the sale).
+        // Lifted out of role:customer,admin so employees can view their
+        // own sale receipt at /orders/{id} too.
+        Route::get('orders/{id}',                [OrderController::class, 'show']);
+        Route::get('orders/{id}/status',         [OrderController::class, 'status']);
+
         // ─── CUSTOMER ────────────────────────────────────────
         Route::middleware('role:customer,admin')->group(function () {
             Route::get('orders/my',               [OrderController::class, 'mine']);
-            Route::get('orders/{id}',             [OrderController::class, 'show']);
-            Route::get('orders/{id}/status',      [OrderController::class, 'status']);
             Route::post('orders',                 [OrderController::class, 'store']);
 
             Route::get('addresses',               [AddressController::class, 'index']);
