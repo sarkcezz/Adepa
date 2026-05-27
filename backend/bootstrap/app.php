@@ -10,12 +10,16 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->statefulApi();
+        // No statefulApi() — we use Bearer-token auth, not SPA cookies.
+        // statefulApi() enables session/CSRF for /api/* which breaks
+        // cross-subdomain login (frontend on shop, API on api.shop).
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        // Exclude every API endpoint from CSRF — they authenticate via
+        // Authorization: Bearer header, which doesn't need a token.
         $middleware->validateCsrfTokens(except: [
-            'api/v1/payments/webhook',
+            'api/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

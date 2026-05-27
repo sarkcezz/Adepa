@@ -19,9 +19,6 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
-<IfModule mod_headers.c>
-    Header always set Access-Control-Allow-Origin "https://adepaporkhub.shop"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN, Accept"
-    Header always set Access-Control-Allow-Credentials "true"
-</IfModule>
+# CORS headers are managed by config/cors.php (fruitcake/laravel-cors).
+# Apache-level headers were removed because duplicate headers cause
+# browsers to reject the response with a CORS error.
