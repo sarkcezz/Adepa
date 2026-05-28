@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\GoogleDriveBackupService;
+use App\Services\OffsiteBackupService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -11,10 +11,11 @@ use Illuminate\Support\Facades\File;
 /**
  * Pure-PHP MySQL backup. Hostinger shared hosting disables exec(), so we
  * can't shell out to mysqldump. Instead we iterate every table, dump
- * CREATE TABLE + INSERT statements, gzip the result, and store under
- * storage/app/backups/.
+ * CREATE TABLE + INSERT statements, gzip the result, store locally, and
+ * upload to off-site object storage (Backblaze B2 by default).
  *
- * Keeps the most recent 7 files; older ones are pruned automatically.
+ * Local keeps the most recent 7 files for fast restore on Hostinger.
+ * Off-site keeps 30 days for disaster recovery.
  *
  * Runs daily at 02:00 via routes/console.php scheduling.
  */
@@ -22,10 +23,10 @@ class BackupDatabase extends Command
 {
     protected $signature = 'adepa:backup
                             {--keep=7 : Number of recent local backups to retain}
-                            {--no-upload : Skip the Google Drive upload step}';
-    protected $description = 'Dump the MySQL database to storage/app/backups and (optionally) upload to Google Drive.';
+                            {--no-upload : Skip the off-site upload step}';
+    protected $description = 'Dump the MySQL database to storage/app/backups and upload off-site (Backblaze B2).';
 
-    public function __construct(protected GoogleDriveBackupService $drive)
+    public function __construct(protected OffsiteBackupService $offsite)
     {
         parent::__construct();
     }
@@ -88,25 +89,25 @@ class BackupDatabase extends Command
         $size = round(strlen($compressed) / 1024, 1);
         $this->info("Wrote $filename (~{$size}KB)");
 
-        // Off-site upload (Google Drive) — best effort. Local-only backup
-        // still succeeds if Drive auth fails or isn't configured.
+        // Off-site upload — best effort. Local-only backup still succeeds
+        // if credentials are missing or the remote is unreachable.
         if (! $this->option('no-upload')) {
-            if ($this->drive->isConfigured()) {
+            if ($this->offsite->isConfigured()) {
                 $remoteName = "adepa-{$timestamp}.sql.gz";
-                $driveId = $this->drive->upload($absolutePath, $remoteName);
-                if ($driveId) {
-                    $this->info("  ↑ Uploaded to Google Drive (id: $driveId)");
-                    $pruned = $this->drive->prune(
-                        (int) config('services.google_drive.keep_days', 30)
+                $remotePath = $this->offsite->upload($absolutePath, $remoteName);
+                if ($remotePath) {
+                    $this->info("  ↑ Uploaded off-site: {$remotePath}");
+                    $pruned = $this->offsite->prune(
+                        (int) config('services.offsite_backup.keep_days', 30)
                     );
                     if ($pruned > 0) {
-                        $this->line("  - pruned $pruned old Drive backup(s)");
+                        $this->line("  - pruned {$pruned} old off-site backup(s)");
                     }
                 } else {
-                    $this->warn('  Drive upload failed — see laravel.log');
+                    $this->warn('  Off-site upload failed — see laravel.log');
                 }
             } else {
-                $this->line('  Google Drive not configured — skipping off-site upload');
+                $this->line('  Off-site backup not configured — skipping');
             }
         }
 
