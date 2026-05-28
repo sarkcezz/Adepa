@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Mail\PasswordResetMail;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -52,13 +53,16 @@ class AuthController extends Controller
 
         $user = User::where('email', $data['email'])->first();
         if (! $user || ! Hash::check($data['password'], $user->password)) {
+            AuditService::log('auth.login_failed', null, ['email' => $data['email']], 'Invalid credentials');
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
         if (! $user->is_active) {
+            AuditService::log('auth.login_blocked', $user, [], 'Account deactivated', $user);
             return response()->json(['message' => 'Account deactivated.'], 403);
         }
 
         $token = $user->createToken('spa', ['*'], now()->addDays(7))->plainTextToken;
+        AuditService::log('auth.login', $user, [], null, $user);
 
         return response()->json(['user' => $user, 'token' => $token]);
     }
@@ -72,13 +76,16 @@ class AuthController extends Controller
 
         $user = User::where('employee_id', $data['employee_id'])->where('role', 'employee')->first();
         if (! $user || ! Hash::check($data['password'], $user->password)) {
+            AuditService::log('auth.employee_login_failed', null, ['employee_id' => $data['employee_id']], 'Invalid credentials');
             return response()->json(['message' => 'Invalid employee credentials.'], 401);
         }
         if (! $user->is_active) {
+            AuditService::log('auth.login_blocked', $user, [], 'Employee account deactivated', $user);
             return response()->json(['message' => 'Employee account deactivated.'], 403);
         }
 
         $token = $user->createToken('employee', ['*'], now()->addHours(8))->plainTextToken;
+        AuditService::log('auth.employee_login', $user, [], null, $user);
 
         return response()->json([
             'user'  => $user,
@@ -89,6 +96,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        AuditService::log('auth.logout', $request->user(), [], null, $request->user());
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out.']);
     }
@@ -114,6 +122,8 @@ class AuthController extends Controller
             'password' => Hash::make($data['new_password']),
             'force_password_change' => false,
         ]);
+
+        AuditService::log('auth.password_changed', $user, [], 'Self-service change');
 
         return response()->json(['message' => 'Password updated.']);
     }

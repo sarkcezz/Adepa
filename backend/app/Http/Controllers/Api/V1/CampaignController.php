@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Campaign;
+use App\Services\AuditService;
 use App\Services\CampaignService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,17 @@ class CampaignController extends Controller
     {
         $data = $this->rules($request);
         $campaign = Campaign::create($data);
+        AuditService::log('campaign.created', $campaign, $data);
         return response()->json($campaign, 201);
     }
 
     public function update(Request $request, string $id): JsonResponse
     {
         $campaign = Campaign::findOrFail($id);
-        $campaign->update($this->rules($request, partial: true));
+        $data   = $this->rules($request, partial: true);
+        $before = $campaign->only(array_keys($data));
+        $campaign->update($data);
+        AuditService::log('campaign.updated', $campaign, ['before' => $before, 'after' => $data]);
         return response()->json($campaign);
     }
 
@@ -35,6 +40,10 @@ class CampaignController extends Controller
     {
         $campaign = Campaign::findOrFail($id);
         $campaign->update(['is_active' => ! $campaign->is_active]);
+        AuditService::log(
+            $campaign->is_active ? 'campaign.activated' : 'campaign.deactivated',
+            $campaign,
+        );
         return response()->json($campaign);
     }
 

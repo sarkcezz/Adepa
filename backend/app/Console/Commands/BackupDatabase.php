@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\GoogleDriveBackupService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -19,8 +20,15 @@ use Illuminate\Support\Facades\File;
  */
 class BackupDatabase extends Command
 {
-    protected $signature = 'adepa:backup {--keep=7 : Number of recent backups to retain}';
-    protected $description = 'Dump the MySQL database to a compressed file in storage/app/backups.';
+    protected $signature = 'adepa:backup
+                            {--keep=7 : Number of recent local backups to retain}
+                            {--no-upload : Skip the Google Drive upload step}';
+    protected $description = 'Dump the MySQL database to storage/app/backups and (optionally) upload to Google Drive.';
+
+    public function __construct(protected GoogleDriveBackupService $drive)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -63,13 +71,37 @@ class BackupDatabase extends Command
         $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
         // Write & gzip
-        $filename = 'backups/adepa-' . now()->format('Y-m-d_His') . '.sql.gz';
-        Storage::disk('local')->put($filename, gzencode($sql, 9));
+        $compressed = gzencode($sql, 9);
+        $filename   = 'backups/adepa-' . now()->format('Y-m-d_His') . '.sql.gz';
+        Storage::disk('local')->put($filename, $compressed);
 
-        $size = round(strlen(gzencode($sql, 9)) / 1024, 1);
+        $size = round(strlen($compressed) / 1024, 1);
         $this->info("Wrote $filename (~{$size}KB)");
 
-        // Prune old backups
+        // Off-site upload (Google Drive) — best effort. Local-only backup
+        // still succeeds if Drive auth fails or isn't configured.
+        if (! $this->option('no-upload')) {
+            if ($this->drive->isConfigured()) {
+                $localPath = storage_path('app/' . $filename);
+                $remoteName = 'adepa-' . now()->format('Y-m-d_His') . '.sql.gz';
+                $driveId = $this->drive->upload($localPath, $remoteName);
+                if ($driveId) {
+                    $this->info("  ↑ Uploaded to Google Drive (id: $driveId)");
+                    $pruned = $this->drive->prune(
+                        (int) config('services.google_drive.keep_days', 30)
+                    );
+                    if ($pruned > 0) {
+                        $this->line("  - pruned $pruned old Drive backup(s)");
+                    }
+                } else {
+                    $this->warn('  Drive upload failed — see laravel.log');
+                }
+            } else {
+                $this->line('  Google Drive not configured — skipping off-site upload');
+            }
+        }
+
+        // Prune local backups (keep small footprint on Hostinger's quota)
         $this->prune((int) $this->option('keep'));
 
         return self::SUCCESS;

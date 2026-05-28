@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // statefulApi() enables session/CSRF for /api/* which breaks
         // cross-subdomain login (frontend on shop, API on api.shop).
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'                 => \App\Http\Middleware\RoleMiddleware::class,
+            'password.changed'     => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
         // Exclude every API endpoint from CSRF — they authenticate via
         // Authorization: Bearer header, which doesn't need a token.

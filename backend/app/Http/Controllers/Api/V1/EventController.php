@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Jobs\SendEventCancellationNotice;
 use App\Models\EventRegistration;
 use App\Models\PorkEvent;
+use App\Services\AuditService;
 use App\Services\PaystackService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,13 +31,17 @@ class EventController extends Controller
         $data = $this->rules($request);
         $data['created_by'] = $request->user()->id;
         $event = PorkEvent::create($data);
+        AuditService::log('event.created', $event, $data);
         return response()->json($event, 201);
     }
 
     public function update(Request $request, string $id): JsonResponse
     {
         $event = PorkEvent::findOrFail($id);
-        $event->update($this->rules($request, partial: true));
+        $data   = $this->rules($request, partial: true);
+        $before = $event->only(array_keys($data));
+        $event->update($data);
+        AuditService::log('event.updated', $event, ['before' => $before, 'after' => $data]);
         return response()->json($event);
     }
 
@@ -45,6 +50,7 @@ class EventController extends Controller
         $data = $request->validate(['status' => ['required', 'in:DRAFT,PUBLISHED,CANCELLED']]);
         $event = PorkEvent::findOrFail($id);
         $event->update(['status' => $data['status']]);
+        AuditService::log('event.status_changed', $event, ['status' => $data['status']]);
         return response()->json($event);
     }
 
@@ -117,6 +123,7 @@ class EventController extends Controller
         $event = PorkEvent::findOrFail($id);
         $event->update(['status' => 'CANCELLED']);
         SendEventCancellationNotice::dispatch($event->id);
+        AuditService::log('event.cancelled', $event, [], 'Cancelled — registrants notified');
         return response()->json(['message' => 'Event cancelled; notifications queued.']);
     }
 

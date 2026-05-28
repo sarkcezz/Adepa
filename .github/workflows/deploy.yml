@@ -66,6 +66,18 @@ jobs:
           find app config database routes -type f -name "*.php" \
             -exec php -l {} \; | grep -v "No syntax errors" || true
 
+      - name: Run PHPUnit (smoke tests)
+        working-directory: backend
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: |
+          # composer install above used --no-dev for production parity;
+          # tests need dev deps for phpunit + faker.
+          composer install --no-interaction --no-progress --prefer-dist --quiet
+          vendor/bin/phpunit --testdox
+
   # ─────────────────────────────────────────────────────────────────────────
   # Deploy: Push to Hostinger over SSH (only on push to main, after CI)
   # ─────────────────────────────────────────────────────────────────────────

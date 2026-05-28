@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Order;
+use App\Services\AuditService;
 use App\Services\OrderService;
 use App\Services\PaystackService;
 use Illuminate\Http\JsonResponse;
@@ -185,8 +186,15 @@ class OrderController extends Controller
             'note'   => ['nullable', 'string'],
         ]);
 
-        $order = Order::findOrFail($id);
-        $order = $this->orderService->updateStatus($order, $data['status'], $request->user()->id, $data['note'] ?? null);
+        $order  = Order::findOrFail($id);
+        $before = $order->status;
+        $order  = $this->orderService->updateStatus($order, $data['status'], $request->user()->id, $data['note'] ?? null);
+
+        AuditService::log('order.status_changed', $order, [
+            'from' => $before,
+            'to'   => $data['status'],
+            'note' => $data['note'] ?? null,
+        ]);
 
         return response()->json($order->fresh('statusHistory'));
     }
@@ -204,6 +212,12 @@ class OrderController extends Controller
             $this->orderService->updateStatus($order, $data['status'], $request->user()->id, 'Bulk update');
             $updated++;
         }
+
+        AuditService::log('order.bulk_status_changed', null, [
+            'count'  => $updated,
+            'status' => $data['status'],
+            'ids'    => $data['ids'],
+        ]);
 
         return response()->json(['updated' => $updated]);
     }

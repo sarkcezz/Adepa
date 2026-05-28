@@ -35,7 +35,11 @@ Route::prefix('v1')->group(function () {
     Route::post('payments/webhook',           [PaymentController::class, 'webhook']);
 
     // ─── AUTHENTICATED (any role) ────────────────────────────
-    Route::middleware('auth:sanctum')->group(function () {
+    // password.changed blocks all routes except /auth/{me,logout,change-password}
+    // when the logged-in user has force_password_change=true. This is the
+    // server-side counterpart to the React force-change interstitial — a token
+    // alone can't bypass the temp-password gate.
+    Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
 
         Route::post('auth/logout',           [AuthController::class, 'logout']);
         Route::get('auth/me',                [AuthController::class, 'me']);
@@ -79,7 +83,10 @@ Route::prefix('v1')->group(function () {
             Route::post('orders/employee-sale',       [OrderController::class, 'employeeSale']);
             Route::get('orders/my-sales',             [OrderController::class, 'mySales']);
             Route::get('orders/my-sales/summary',     [OrderController::class, 'mySalesSummary']);
-            Route::get('orders/customer-lookup',      [OrderController::class, 'customerLookup']);
+            // Phone lookup is enumeration-friendly — throttle aggressively
+            // (30 requests per minute per authenticated employee).
+            Route::get('orders/customer-lookup',      [OrderController::class, 'customerLookup'])
+                ->middleware('throttle:30,1');
         });
 
         // ─── ADMIN ───────────────────────────────────────────
