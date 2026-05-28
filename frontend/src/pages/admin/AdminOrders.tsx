@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Download } from 'lucide-react'
+import { Download, Search, X } from 'lucide-react'
 import { api } from '@/lib/axios'
 import type { Order, OrderStatus } from '@/types'
-import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -11,17 +10,34 @@ import { toast } from 'sonner'
 
 const STATUSES: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
 
+/** Returns the latest value of `value` after `delay` ms of stability. */
+function useDebounced<T>(value: T, delay = 300): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return debounced
+}
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState({ status: '', payment_method: '', delivery_method: '' })
+  const [search, setSearch] = useState('')
+
+  // Debounce the search so we don't fire on every keystroke
+  const debouncedSearch = useDebounced(search, 300)
 
   function load() {
     setLoading(true)
-    api.get('/admin/orders', { params: filter }).then((r) => setOrders(r.data.data)).finally(() => setLoading(false))
+    const params = { ...filter, q: debouncedSearch || undefined }
+    api.get('/admin/orders', { params })
+      .then((r) => setOrders(r.data.data))
+      .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [filter])
+  useEffect(() => { load() }, [filter, debouncedSearch])
 
   async function updateStatus(id: string, status: OrderStatus) {
     try {
@@ -53,6 +69,26 @@ export default function AdminOrders() {
       </div>
 
       <div className="card flex flex-wrap items-end gap-3">
+        <div className="relative min-w-[260px] flex-1">
+          <label className="label">Search</label>
+          <Search className="pointer-events-none absolute left-3 top-1/2 mt-1 h-4 w-4 -translate-y-1/2 text-night-400" />
+          <input
+            type="search"
+            placeholder="Order #, customer name, phone, paystack ref…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input pl-9"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 mt-1 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-night-400 hover:bg-night-100 hover:text-night-700 cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
         <Select label="Status" value={filter.status} onChange={(e) => setFilter({ ...filter, status: e.target.value })}>
           <option value="">All</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}

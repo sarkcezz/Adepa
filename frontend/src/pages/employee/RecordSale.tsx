@@ -51,6 +51,7 @@ export default function RecordSale() {
   const [loading,   setLoading]   = useState(true)
   const [search,    setSearch]    = useState('')
   const [filter,    setFilter]    = useState<LineFilter>('All')
+  const [showOOS,   setShowOOS]   = useState(false)
 
   // ── Cart ──────────────────────────────────────────────────────────────
   const [cart, setCart] = useState<CartItem[]>([])
@@ -181,9 +182,19 @@ export default function RecordSale() {
   }, [cart, products])
 
   // ── Filtered products ─────────────────────────────────────────────────
+  // Count OOS so the toggle can show "Show 3 out of stock"
+  const oosCount = useMemo(
+    () => products.filter((p) => p.stock_qty === 0).length,
+    [products],
+  )
+
   const filteredProducts = useMemo(() => {
     const lower = search.toLowerCase().trim()
     return products.filter((p) => {
+      // Hide out-of-stock unless explicitly toggled on (or there's a
+      // search term — searches should always reveal everything).
+      if (!showOOS && !lower && p.stock_qty === 0) return false
+
       if (filter !== 'All' && p.product_line !== filter) return false
       if (!lower) return true
       return (
@@ -192,7 +203,7 @@ export default function RecordSale() {
         p.product_line.toLowerCase().includes(lower)
       )
     })
-  }, [products, search, filter])
+  }, [products, search, filter, showOOS])
 
   // Recent products (last 5 sold) - shown above the grid
   const recentProducts = useMemo(() => {
@@ -430,8 +441,8 @@ export default function RecordSale() {
           </div>
         </div>
 
-        {/* Category chips */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Category chips + OOS toggle */}
+        <div className="flex flex-wrap items-center gap-1.5">
           {LINES.map((l) => (
             <button
               key={l}
@@ -444,6 +455,20 @@ export default function RecordSale() {
               {l === 'All' ? 'All' : l === 'READY_TO_EAT' ? 'Ready-to-eat' : l.charAt(0) + l.slice(1).toLowerCase()}
             </button>
           ))}
+
+          {/* OOS toggle — only visible when there ARE OOS items to toggle */}
+          {oosCount > 0 && (
+            <button
+              onClick={() => setShowOOS((v) => !v)}
+              className={`ml-auto rounded-full px-3 py-1.5 text-[11px] font-semibold cursor-pointer transition-colors
+                ${showOOS
+                  ? 'bg-night-900 text-white'
+                  : 'bg-night-100 text-night-600 hover:bg-night-200'}`}
+              title={showOOS ? 'Hide out-of-stock' : 'Show out-of-stock'}
+            >
+              {showOOS ? '✓ ' : ''}Show {oosCount} out of stock
+            </button>
+          )}
         </div>
 
         {/* Recently sold strip */}

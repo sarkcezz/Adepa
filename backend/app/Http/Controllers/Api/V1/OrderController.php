@@ -176,6 +176,22 @@ class OrderController extends Controller
         if ($from = $request->input('from'))           { $q->whereDate('created_at', '>=', $from); }
         if ($to   = $request->input('to'))             { $q->whereDate('created_at', '<=', $to); }
 
+        // Free-text search across order number, paystack ref, customer
+        // name + phone. Customer fields use a join-style subquery so we
+        // don't pull every customer into memory.
+        if ($search = trim((string) $request->input('q'))) {
+            $like = '%' . str_replace(' ', '%', $search) . '%';
+            $q->where(function ($qq) use ($like) {
+                $qq->where('order_number', 'like', $like)
+                   ->orWhere('paystack_reference', 'like', $like)
+                   ->orWhere('payment_reference', 'like', $like)
+                   ->orWhereHas('customer', function ($cq) use ($like) {
+                       $cq->where('name', 'like', $like)
+                          ->orWhere('phone', 'like', $like);
+                   });
+            });
+        }
+
         return response()->json($q->paginate(30));
     }
 

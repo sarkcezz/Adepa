@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PasswordStrengthMeter } from '@/components/profile/PasswordStrengthMeter'
 
 export default function Register() {
   const { register } = useAuth()
@@ -27,7 +28,20 @@ export default function Register() {
           <Input label="Full name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Input label="Email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Input label="Ghana phone" placeholder="0244 123 4567" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} hint="Format: 02XX/05X 7-digit number" />
-          <Input label="Password" type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} hint="At least 8 characters" />
+          <div>
+            <Input
+              label="Password"
+              type="password"
+              required
+              minLength={8}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              autoComplete="new-password"
+            />
+            <div className="mt-2">
+              <PasswordStrengthMeter password={form.password} />
+            </div>
+          </div>
           <Button type="submit" loading={loading} className="w-full">Create account</Button>
         </form>
 

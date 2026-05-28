@@ -31,17 +31,36 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          // Network-first for the API so we always try live data; fall back
-          // to cache only on failure. The IndexedDB offline queue handles
-          // POST /orders/employee-sale separately (sw can't replay POSTs).
+          // Activate new SW immediately on deploy — users on a tab get the
+          // latest code on next navigation instead of waiting for all tabs
+          // to close.
+          skipWaiting: true,
+          clientsClaim: true,
+          // Per-endpoint caching strategy. Hot data has a short TTL so a
+          // price/stock change can't go stale for more than an hour even
+          // if the user keeps the app open.
           runtimeCaching: [
             {
+              // Hot data — products, orders, admin. Short TTL.
+              urlPattern: ({ url }) =>
+                url.pathname.includes('/api/v1/products') ||
+                url.pathname.includes('/api/v1/orders') ||
+                url.pathname.includes('/api/v1/admin'),
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'adepa-api-hot',
+                networkTimeoutSeconds: 4,
+                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 },
+              },
+            },
+            {
+              // Reference data — announcements, events, locations. Longer TTL.
               urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'adepa-api',
                 networkTimeoutSeconds: 4,
-                expiration: { maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 },
+                expiration: { maxEntries: 100, maxAgeSeconds: 6 * 60 * 60 },
               },
             },
             {

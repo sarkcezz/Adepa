@@ -3,6 +3,7 @@ import { KeyRound, Check, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PasswordStrengthMeter } from '@/components/profile/PasswordStrengthMeter'
 import { toast } from 'sonner'
 
 interface Props {
@@ -86,8 +87,8 @@ export function ChangePasswordCard({ onSuccess, title = 'Change password', bare 
             value={form.new_password}
             onChange={(e) => setForm({ ...form, new_password: e.target.value })}
             autoComplete="new-password"
-            hint="At least 8 characters"
           />
+          <PasswordStrengthMeter password={form.new_password} />
         </div>
 
         <Input
