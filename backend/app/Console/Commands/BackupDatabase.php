@@ -70,10 +70,20 @@ class BackupDatabase extends Command
 
         $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
-        // Write & gzip
+        // Write & gzip — capture timestamp ONCE so the file we write and
+        // the path we upload from agree even if a second elapses.
         $compressed = gzencode($sql, 9);
-        $filename   = 'backups/adepa-' . now()->format('Y-m-d_His') . '.sql.gz';
-        Storage::disk('local')->put($filename, $compressed);
+        $timestamp  = now()->format('Y-m-d_His');
+        $filename   = "backups/adepa-{$timestamp}.sql.gz";
+        $disk       = Storage::disk('local');
+        $disk->put($filename, $compressed);
+
+        // Resolve the absolute path via the disk itself — Laravel 11's
+        // default 'local' disk root is storage/app/private/, NOT
+        // storage/app/. Computing storage_path('app/' . $filename)
+        // would point at the wrong directory and the uploader would
+        // log "local file missing".
+        $absolutePath = $disk->path($filename);
 
         $size = round(strlen($compressed) / 1024, 1);
         $this->info("Wrote $filename (~{$size}KB)");
@@ -82,9 +92,8 @@ class BackupDatabase extends Command
         // still succeeds if Drive auth fails or isn't configured.
         if (! $this->option('no-upload')) {
             if ($this->drive->isConfigured()) {
-                $localPath = storage_path('app/' . $filename);
-                $remoteName = 'adepa-' . now()->format('Y-m-d_His') . '.sql.gz';
-                $driveId = $this->drive->upload($localPath, $remoteName);
+                $remoteName = "adepa-{$timestamp}.sql.gz";
+                $driveId = $this->drive->upload($absolutePath, $remoteName);
                 if ($driveId) {
                     $this->info("  ↑ Uploaded to Google Drive (id: $driveId)");
                     $pruned = $this->drive->prune(
@@ -109,7 +118,9 @@ class BackupDatabase extends Command
 
     protected function prune(int $keep): void
     {
-        $dir = storage_path('app/backups');
+        // Use the disk's actual root, not storage_path('app/...') — see
+        // the Laravel 11 root-directory note in handle().
+        $dir = Storage::disk('local')->path('backups');
         if (! File::isDirectory($dir)) return;
 
         $files = collect(File::files($dir))
