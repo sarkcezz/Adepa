@@ -1,47 +1,67 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import PublicLayout from '@/components/layout/PublicLayout'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import AdminLayout from '@/components/layout/AdminLayout'
-import EmployeeLayout from '@/components/layout/EmployeeLayout'
+import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
+// ── Public — eager-loaded (first-paint matters) ─────────────────────────
 import Home from '@/pages/public/Home'
 import Products from '@/pages/public/Products'
 import ProductDetail from '@/pages/public/ProductDetail'
 import Events from '@/pages/public/Events'
 import Locations from '@/pages/public/Locations'
-import Checkout from '@/pages/public/Checkout'
 
+// ── Customer-only auth pages — small, eager ────────────────────────────
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import ResetPassword from '@/pages/auth/ResetPassword'
 import EmployeeLogin from '@/pages/auth/EmployeeLogin'
-import ForcePasswordChange from '@/pages/auth/ForcePasswordChange'
 
-import Dashboard from '@/pages/dashboard/Dashboard'
-import Orders from '@/pages/dashboard/Orders'
-import OrderDetail from '@/pages/dashboard/OrderDetail'
-import OrderTracking from '@/pages/dashboard/OrderTracking'
-import Profile from '@/pages/dashboard/Profile'
-import MyEvents from '@/pages/dashboard/MyEvents'
+// ── Lazy chunks ────────────────────────────────────────────────────────
+//
+// Anything under /checkout, /dashboard, /admin, /employee is split into
+// its own chunk. The public visitor downloads ~300KB instead of ~950KB;
+// admin/employee chunks load on demand.
 
-import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AdminOrders from '@/pages/admin/AdminOrders'
-import AdminProducts from '@/pages/admin/AdminProducts'
-import AdminAnnouncements from '@/pages/admin/AdminAnnouncements'
-import AdminEvents from '@/pages/admin/AdminEvents'
-import AdminCampaigns from '@/pages/admin/AdminCampaigns'
-import AdminEmployees from '@/pages/admin/AdminEmployees'
-import AdminCustomers from '@/pages/admin/AdminCustomers'
-import AdminAnalytics from '@/pages/admin/AdminAnalytics'
-import AdminAuditLogs from '@/pages/admin/AdminAuditLogs'
-import AdminProfile from '@/pages/admin/AdminProfile'
+const Checkout = lazy(() => import('@/pages/public/Checkout'))
 
-import EmployeeDashboard from '@/pages/employee/EmployeeDashboard'
-import RecordSale from '@/pages/employee/RecordSale'
-import SalesHistory from '@/pages/employee/SalesHistory'
-import SaleReceipt from '@/pages/employee/SaleReceipt'
+const ForcePasswordChange = lazy(() => import('@/pages/auth/ForcePasswordChange'))
+
+const Dashboard       = lazy(() => import('@/pages/dashboard/Dashboard'))
+const Orders          = lazy(() => import('@/pages/dashboard/Orders'))
+const OrderDetail     = lazy(() => import('@/pages/dashboard/OrderDetail'))
+const OrderTracking   = lazy(() => import('@/pages/dashboard/OrderTracking'))
+const Profile         = lazy(() => import('@/pages/dashboard/Profile'))
+const MyEvents        = lazy(() => import('@/pages/dashboard/MyEvents'))
+
+const AdminLayout         = lazy(() => import('@/components/layout/AdminLayout'))
+const AdminDashboard      = lazy(() => import('@/pages/admin/AdminDashboard'))
+const AdminOrders         = lazy(() => import('@/pages/admin/AdminOrders'))
+const AdminProducts       = lazy(() => import('@/pages/admin/AdminProducts'))
+const AdminAnnouncements  = lazy(() => import('@/pages/admin/AdminAnnouncements'))
+const AdminEvents         = lazy(() => import('@/pages/admin/AdminEvents'))
+const AdminCampaigns      = lazy(() => import('@/pages/admin/AdminCampaigns'))
+const AdminEmployees      = lazy(() => import('@/pages/admin/AdminEmployees'))
+const AdminCustomers      = lazy(() => import('@/pages/admin/AdminCustomers'))
+const AdminAnalytics      = lazy(() => import('@/pages/admin/AdminAnalytics'))
+const AdminAuditLogs      = lazy(() => import('@/pages/admin/AdminAuditLogs'))
+const AdminProfile        = lazy(() => import('@/pages/admin/AdminProfile'))
+
+const EmployeeLayout    = lazy(() => import('@/components/layout/EmployeeLayout'))
+const EmployeeDashboard = lazy(() => import('@/pages/employee/EmployeeDashboard'))
+const RecordSale        = lazy(() => import('@/pages/employee/RecordSale'))
+const SalesHistory      = lazy(() => import('@/pages/employee/SalesHistory'))
+const SaleReceipt       = lazy(() => import('@/pages/employee/SaleReceipt'))
+
+// Wraps a lazy element so React Router shows a friendly spinner while
+// the chunk downloads (rather than an empty page).
+const Lazy = (Component: React.LazyExoticComponent<React.ComponentType>) => (
+  <Suspense fallback={<div className="grid min-h-[60vh] place-items-center"><LoadingSpinner /></div>}>
+    <Component />
+  </Suspense>
+)
 
 function ProtectedRoute({ roles }: { roles: string[] }) {
   const { user, token } = useAuthStore()
@@ -71,7 +91,7 @@ export const router = createBrowserRouter([
       { path: '/products/:id',    element: <ProductDetail /> },
       { path: '/events',          element: <Events /> },
       { path: '/locations',       element: <Locations /> },
-      { path: '/checkout',        element: <Checkout /> },
+      { path: '/checkout',        element: Lazy(Checkout) },
       { path: '/login',           element: <Login /> },
       { path: '/register',        element: <Register /> },
       { path: '/forgot-password', element: <ForgotPassword /> },
@@ -85,12 +105,12 @@ export const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
-          { path: '/dashboard',                  element: <Dashboard /> },
-          { path: '/dashboard/orders',           element: <Orders /> },
-          { path: '/dashboard/orders/:id',       element: <OrderDetail /> },
-          { path: '/dashboard/orders/:id/track', element: <OrderTracking /> },
-          { path: '/dashboard/profile',          element: <Profile /> },
-          { path: '/dashboard/events',           element: <MyEvents /> },
+          { path: '/dashboard',                  element: Lazy(Dashboard) },
+          { path: '/dashboard/orders',           element: Lazy(Orders) },
+          { path: '/dashboard/orders/:id',       element: Lazy(OrderDetail) },
+          { path: '/dashboard/orders/:id/track', element: Lazy(OrderTracking) },
+          { path: '/dashboard/profile',          element: Lazy(Profile) },
+          { path: '/dashboard/events',           element: Lazy(MyEvents) },
         ],
       },
     ],
@@ -99,19 +119,19 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute roles={['admin']} />,
     children: [
       {
-        element: <AdminLayout />,
+        element: Lazy(AdminLayout),
         children: [
-          { path: '/admin',                element: <AdminDashboard /> },
-          { path: '/admin/orders',         element: <AdminOrders /> },
-          { path: '/admin/products',       element: <AdminProducts /> },
-          { path: '/admin/announcements',  element: <AdminAnnouncements /> },
-          { path: '/admin/events',         element: <AdminEvents /> },
-          { path: '/admin/campaigns',      element: <AdminCampaigns /> },
-          { path: '/admin/employees',      element: <AdminEmployees /> },
-          { path: '/admin/customers',      element: <AdminCustomers /> },
-          { path: '/admin/analytics',      element: <AdminAnalytics /> },
-          { path: '/admin/audit-logs',     element: <AdminAuditLogs /> },
-          { path: '/admin/profile',        element: <AdminProfile /> },
+          { path: '/admin',                element: Lazy(AdminDashboard) },
+          { path: '/admin/orders',         element: Lazy(AdminOrders) },
+          { path: '/admin/products',       element: Lazy(AdminProducts) },
+          { path: '/admin/announcements',  element: Lazy(AdminAnnouncements) },
+          { path: '/admin/events',         element: Lazy(AdminEvents) },
+          { path: '/admin/campaigns',      element: Lazy(AdminCampaigns) },
+          { path: '/admin/employees',      element: Lazy(AdminEmployees) },
+          { path: '/admin/customers',      element: Lazy(AdminCustomers) },
+          { path: '/admin/analytics',      element: Lazy(AdminAnalytics) },
+          { path: '/admin/audit-logs',     element: Lazy(AdminAuditLogs) },
+          { path: '/admin/profile',        element: Lazy(AdminProfile) },
         ],
       },
     ],
@@ -120,12 +140,12 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute roles={['employee', 'admin']} />,
     children: [
       {
-        element: <EmployeeLayout />,
+        element: Lazy(EmployeeLayout),
         children: [
-          { path: '/employee',                  element: <EmployeeDashboard /> },
-          { path: '/employee/sale',             element: <RecordSale /> },
-          { path: '/employee/sale/:id/receipt', element: <SaleReceipt /> },
-          { path: '/employee/history',          element: <SalesHistory /> },
+          { path: '/employee',                  element: Lazy(EmployeeDashboard) },
+          { path: '/employee/sale',             element: Lazy(RecordSale) },
+          { path: '/employee/sale/:id/receipt', element: Lazy(SaleReceipt) },
+          { path: '/employee/history',          element: Lazy(SalesHistory) },
         ],
       },
     ],
@@ -135,7 +155,7 @@ export const router = createBrowserRouter([
     // even while force_password_change=true (otherwise we'd infinite-loop).
     element: <AuthOnly />,
     children: [
-      { path: '/change-password', element: <ForcePasswordChange /> },
+      { path: '/change-password', element: Lazy(ForcePasswordChange) },
     ],
   },
 ])

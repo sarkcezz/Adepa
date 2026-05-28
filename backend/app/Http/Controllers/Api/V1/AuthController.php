@@ -101,6 +101,35 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out.']);
     }
 
+    /**
+     * Self-service profile update. Only fields a user may safely change
+     * themselves — name, email, phone. Role/position/employee_id are
+     * admin-managed and intentionally not allowed here.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'name'  => ['sometimes', 'string', 'min:2', 'max:100'],
+            'email' => ['sometimes', 'nullable', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['sometimes', 'string', Rule::unique('users', 'phone')->ignore($user->id)],
+        ]);
+
+        $before = $user->only(array_keys($data));
+        $user->update($data);
+
+        AuditService::log('auth.profile_updated', $user, [
+            'before' => $before,
+            'after'  => $data,
+        ], null, $user);
+
+        return response()->json([
+            'user'    => $user->fresh(),
+            'message' => 'Profile updated.',
+        ]);
+    }
+
     public function me(Request $request): JsonResponse
     {
         return response()->json($request->user());

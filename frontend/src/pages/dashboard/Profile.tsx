@@ -20,9 +20,15 @@ export default function Profile() {
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
-    // Email/phone updates flow through the same endpoint pattern — implement when needed.
-    setUser({ ...user!, ...profile })
-    toast.success('Profile updated.')
+    try {
+      const { data } = await api.patch('/auth/profile', profile)
+      // Server is the source of truth — use the returned user so we pick up
+      // any normalization (trimmed whitespace, lowercased email, etc.).
+      setUser(data.user)
+      toast.success('Profile updated.')
+    } catch {
+      // axios interceptor surfaces validation toasts
+    }
   }
 
   async function savePassword(e: React.FormEvent) {

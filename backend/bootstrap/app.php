@@ -8,6 +8,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
+        // /up returns 200 OK + JSON status if the framework is responsive.
+        // Wire UptimeRobot or BetterStack to ping this every 5 min.
+        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         // No statefulApi() — we use Bearer-token auth, not SPA cookies.

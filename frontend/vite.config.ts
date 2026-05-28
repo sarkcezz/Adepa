@@ -75,6 +75,20 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       sourcemap: false,
       assetsDir: 'assets',
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          // Split heavy third-party libs out of the per-route chunks so
+          // they're cached separately and only redownloaded on lib updates.
+          manualChunks: {
+            'vendor-react':    ['react', 'react-dom', 'react-router-dom'],
+            'vendor-charts':   ['recharts'],
+            'vendor-icons':    ['lucide-react'],
+            'vendor-forms':    ['react-hook-form', '@hookform/resolvers', 'zod'],
+            'vendor-utils':    ['axios', 'date-fns', 'clsx', 'tailwind-merge', 'sonner', 'zustand', 'idb'],
+          },
+        },
+      },
     },
   }
 })

@@ -19,11 +19,22 @@ export interface HeldCart {
 }
 
 const STORAGE_KEY = 'adepa-pos-held-carts'
+const EXPIRY_MS   = 24 * 60 * 60 * 1000   // 24 hours
 
+/** Reads from localStorage and auto-prunes anything past EXPIRY_MS. */
 function readAll(): HeldCart[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const all: HeldCart[] = raw ? JSON.parse(raw) : []
+
+    const now    = Date.now()
+    const fresh  = all.filter((c) => (now - c.held_at) < EXPIRY_MS)
+
+    // Persist the pruned list so it stays clean across sessions
+    if (fresh.length !== all.length) {
+      writeAll(fresh)
+    }
+    return fresh
   } catch {
     return []
   }

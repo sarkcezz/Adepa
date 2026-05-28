@@ -8,9 +8,11 @@ return [
     'default'    => env('LOG_CHANNEL', 'stack'),
     'deprecations' => ['channel' => 'null', 'trace' => false],
     'channels'   => [
+        // Stack now writes to the daily channel — auto-rotates so
+        // storage/logs/laravel.log doesn't fill Hostinger's quota.
         'stack' => [
             'driver'  => 'stack',
-            'channels' => ['single'],
+            'channels' => ['daily'],
             'ignore_exceptions' => false,
         ],
         'single' => [
@@ -23,7 +25,7 @@ return [
             'driver' => 'daily',
             'path'   => storage_path('logs/laravel.log'),
             'level'  => env('LOG_LEVEL', 'debug'),
-            'days'   => 7,
+            'days'   => 30,
             'replace_placeholders' => true,
         ],
         'null'   => ['driver' => 'monolog', 'handler' => NullHandler::class],
