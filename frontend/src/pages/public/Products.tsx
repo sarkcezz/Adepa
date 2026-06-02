@@ -21,6 +21,13 @@ const VARIANTS: { value: ProductVariant | 'ALL'; label: string }[] = [
   { value: 'SPICY', label: 'Spicy' },
 ]
 
+const SIZES: { value: 'ALL' | 'small' | 'medium' | 'large'; label: string }[] = [
+  { value: 'ALL',    label: 'Any size' },
+  { value: 'small',  label: '≤ 500g' },
+  { value: 'medium', label: '500g–2kg' },
+  { value: 'large',  label: '> 2kg' },
+]
+
 export default function Products() {
   const [items,   setItems]   = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,59 +51,54 @@ export default function Products() {
     })
   }, [items, line, variant, size])
 
+  const pill = (selected: boolean, tone: 'flame' | 'gold' = 'flame') =>
+    cn(
+      'rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
+      selected
+        ? tone === 'flame' ? 'bg-flame text-white shadow-flame' : 'bg-gold text-night-900 shadow-gold'
+        : 'bg-white text-night-700 ring-1 ring-night-200 hover:text-flame hover:ring-flame/30',
+    )
+
   return (
     <div className="container-tight py-10">
-      <div className="mb-8">
-        <h1 className="display text-3xl font-bold sm:text-4xl">Our Menu</h1>
-        <p className="mt-1 text-night-600">From raw cuts to ready-to-eat — pick your flavour.</p>
+      <div className="mb-8 max-w-2xl">
+        <p className="eyebrow">Our menu</p>
+        <h1 className="display-2 mt-2">Pick your flavour</h1>
+        <p className="mt-2 text-night-600">From butcher-clean raw cuts to fire-grilled ready-to-eat platters.</p>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-night-100">
-        <Filter className="h-4 w-4 text-night-500" />
-        <span className="text-sm font-medium text-night-700">Filter:</span>
-
-        <div className="flex flex-wrap gap-1.5">
+      {/* Filters — consistent pill controls, grouped by row */}
+      <div className="mb-6 space-y-3 border-b border-night-100 pb-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-night-500">
+            <Filter className="h-3.5 w-3.5" /> Line
+          </span>
           {LINES.map((l) => (
-            <button
-              key={l.value}
-              onClick={() => setLine(l.value)}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                line === l.value ? 'bg-flame text-white' : 'bg-night-100 text-night-700 hover:bg-night-200',
-              )}
-            >
+            <button key={l.value} onClick={() => setLine(l.value)} className={pill(line === l.value)}>
               {l.label}
             </button>
           ))}
         </div>
 
         {line === 'SPICED' && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-night-500">Heat</span>
             {VARIANTS.map((v) => (
-              <button
-                key={v.value}
-                onClick={() => setVariant(v.value)}
-                className={cn(
-                  'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                  variant === v.value ? 'bg-gold text-night-900' : 'bg-night-100 text-night-700 hover:bg-night-200',
-                )}
-              >
+              <button key={v.value} onClick={() => setVariant(v.value)} className={pill(variant === v.value, 'gold')}>
                 {v.label}
               </button>
             ))}
           </div>
         )}
 
-        <select
-          value={size}
-          onChange={(e) => setSize(e.target.value as any)}
-          className="rounded-full border border-night-200 bg-white px-3 py-1 text-xs font-medium text-night-700"
-        >
-          <option value="ALL">Any size</option>
-          <option value="small">Small (≤ 500g)</option>
-          <option value="medium">Medium (500g – 2kg)</option>
-          <option value="large">Large (&gt; 2kg)</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-night-500">Size</span>
+          {SIZES.map((s) => (
+            <button key={s.value} onClick={() => setSize(s.value)} className={pill(size === s.value)}>
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

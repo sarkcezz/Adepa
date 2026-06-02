@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Calendar, Clock, MapPin } from 'lucide-react'
+import { Calendar, Clock, MapPin, ArrowUpRight } from 'lucide-react'
 import { api } from '@/lib/axios'
 import type { StandAnnouncement } from '@/types'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
@@ -16,9 +16,10 @@ export default function Locations() {
 
   return (
     <div className="container-tight py-10">
-      <div className="mb-8">
-        <h1 className="display text-3xl font-bold sm:text-4xl">Stand Locations</h1>
-        <p className="mt-1 text-night-600">Find us at a stand near you this week.</p>
+      <div className="mb-8 max-w-2xl">
+        <p className="eyebrow">This week</p>
+        <h1 className="display-2 mt-2">Where to find us</h1>
+        <p className="mt-2 text-night-600">Fresh from the stand — visit any of our locations near you.</p>
       </div>
 
       {loading ? (
@@ -27,36 +28,55 @@ export default function Locations() {
         <EmptyState title="No active stands right now" description="Check back soon — new locations are announced weekly." />
       ) : (
         items.map((announcement) => (
-          <section key={announcement.id} className="mb-10">
-            <div className="mb-5 rounded-2xl bg-gold/10 p-5">
-              <p className="text-sm font-semibold text-gold-700 uppercase tracking-wide">Active stands</p>
-              <h2 className="display mt-1 text-2xl font-bold">{announcement.title}</h2>
-              <p className="mt-1 text-sm text-night-700">{announcement.description}</p>
-              <p className="mt-2 text-xs text-night-500">
+          <section key={announcement.id} className="mb-12">
+            {/* Announcement header — full-bleed band, not a card */}
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-gold/40 pb-3">
+              <h2 className="display text-2xl font-bold">{announcement.title}</h2>
+              <span className="text-sm font-medium text-night-500">
                 {formatDate(announcement.start_date)} – {formatDate(announcement.end_date)}
-              </p>
+              </span>
             </div>
+            {announcement.description && (
+              <p className="mt-3 max-w-2xl text-night-600">{announcement.description}</p>
+            )}
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Stands as an editorial list — numbered, generous rhythm */}
+            <ol className="mt-6 divide-y divide-night-100 overflow-hidden rounded-2xl bg-white shadow-soft ring-1 ring-night-100">
               {announcement.locations.map((loc, i) => (
-                <div key={i} className="card flex flex-col">
-                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-flame/10 text-flame">
-                    <MapPin className="h-5 w-5" />
+                <li key={i} className="flex flex-col gap-3 p-5 transition-colors hover:bg-cream sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <span className="display grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-flame/10 text-lg font-bold text-flame">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <h3 className="font-semibold text-night-900">{loc.name}</h3>
+                      <p className="flex items-center gap-1.5 text-sm text-night-600">
+                        <MapPin className="h-3.5 w-3.5 text-night-400" /> {loc.area}
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-night-900">{loc.name}</h3>
-                  <p className="text-sm text-night-600">{loc.area}</p>
-                  <div className="mt-3 space-y-1.5 text-sm text-night-600">
-                    <p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-gold" /> {loc.days}</p>
-                    <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-gold" /> {loc.hours}</p>
+
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 pl-14 text-sm text-night-600 sm:pl-0">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 text-gold" /> {loc.days}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-gold" /> {loc.hours}
+                    </span>
+                    {loc.map_link && (
+                      <a
+                        href={loc.map_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-semibold text-flame hover:underline"
+                      >
+                        Open in Maps <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    )}
                   </div>
-                  {loc.map_link && (
-                    <a href={loc.map_link} target="_blank" rel="noopener noreferrer" className="mt-4 text-sm font-semibold text-flame hover:underline">
-                      Open in Maps →
-                    </a>
-                  )}
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </section>
         ))
       )}

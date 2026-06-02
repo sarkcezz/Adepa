@@ -47,7 +47,7 @@ export default function Home() {
             <h1 className="display-1 mt-5 font-extrabold text-white">
               Fresh. Spiced.
               <br />
-              <span className="text-gradient-warm">Ready</span> for every meal.
+              <span className="text-gold">Ready</span> for every meal.
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
