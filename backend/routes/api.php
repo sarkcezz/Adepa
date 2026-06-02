@@ -69,6 +69,8 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:customer,admin')->group(function () {
             Route::get('orders/my',               [OrderController::class, 'mine']);
             Route::post('orders',                 [OrderController::class, 'store']);
+            Route::post('orders/{id}/cancel',     [OrderController::class, 'cancelMine'])
+                ->where('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
             Route::get('addresses',               [AddressController::class, 'index']);
             Route::post('addresses',              [AddressController::class, 'store']);

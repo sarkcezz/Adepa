@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { formatGhs, formatWeight } from '@/lib/formatters'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useCartStore } from '@/store/cartStore'
+import { PorkMark } from '@/components/common/PorkMark'
 import { toast } from 'sonner'
 
 export default function ProductDetail() {
@@ -32,28 +33,30 @@ export default function ProductDetail() {
       </Link>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <div className="aspect-square overflow-hidden rounded-2xl bg-cream">
+        <div className="aspect-square overflow-hidden rounded-2xl bg-cream ring-1 ring-night-100">
           {product.image_url ? (
             <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center text-[12rem]">
-              {product.product_line === 'READY_TO_EAT' ? '🍖' : product.product_line === 'SPICED' ? '🌶️' : '🥩'}
-            </div>
+            <PorkMark
+              variant={product.product_line === 'READY_TO_EAT' ? 'ready' : product.product_line === 'SPICED' ? 'spiced' : 'raw'}
+            />
           )}
         </div>
 
         <div>
-          <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-night-500">
-            <span>{product.product_line.replace('_', ' ')}</span>
-            {product.variant !== 'NONE' && <><span>•</span><span>{product.variant}</span></>}
+          <div className="mb-3 flex items-center gap-2">
+            <span className="eyebrow">{product.product_line.replace('_', ' ').toLowerCase()}</span>
+            {product.variant !== 'NONE' && (
+              <span className="text-xs font-medium uppercase tracking-wider text-night-500">{product.variant}</span>
+            )}
             {product.heat_level > 0 && (
               <span className="flex items-center gap-0.5">
-                • {Array.from({ length: product.heat_level }).map((_, i) => <Flame key={i} className="h-3 w-3 text-flame" />)}
+                {Array.from({ length: product.heat_level }).map((_, i) => <Flame key={i} className="h-3.5 w-3.5 text-flame" />)}
               </span>
             )}
           </div>
 
-          <h1 className="display mb-2 text-4xl font-bold">{product.name}</h1>
+          <h1 className="display-2 mb-2">{product.name}</h1>
           {product.weight_grams && <p className="mb-4 text-sm text-night-500">{formatWeight(product.weight_grams)}</p>}
 
           <p className="mb-6 text-3xl font-bold text-flame">{formatGhs(product.price_kobo)}</p>

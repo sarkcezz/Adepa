@@ -5,6 +5,7 @@ import type { PorkEvent } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
+import { PorkMark } from '@/components/common/PorkMark'
 import { formatDate, formatGhs } from '@/lib/formatters'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
@@ -41,9 +42,10 @@ export default function Events() {
 
   return (
     <div className="container-tight py-10">
-      <div className="mb-8">
-        <h1 className="display text-3xl font-bold sm:text-4xl">Pork Events</h1>
-        <p className="mt-1 text-night-600">Monthly eat-and-drink gatherings — flat rate, all included.</p>
+      <div className="mb-8 max-w-2xl">
+        <p className="eyebrow">Gather round</p>
+        <h1 className="display-2 mt-2">Pork events</h1>
+        <p className="mt-2 text-night-600">Monthly eat-and-drink gatherings. Flat rate, everything included.</p>
       </div>
 
       {loading ? (
@@ -61,9 +63,11 @@ export default function Events() {
             const percent = (e.registered_count / e.capacity) * 100
             return (
               <div key={e.id} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-night-100">
-                <div className="relative h-44 bg-gradient-to-br from-flame to-gold">
-                  {e.image_url && <img src={e.image_url} alt={e.name} className="h-full w-full object-cover" />}
-                  <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-flame">
+                <div className="relative h-44 bg-cream">
+                  {e.image_url
+                    ? <img src={e.image_url} alt={e.name} className="h-full w-full object-cover" />
+                    : <PorkMark variant="event" />}
+                  <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-flame shadow-soft">
                     {slotsLeft > 0 ? `${slotsLeft} slots left` : 'Sold out'}
                   </div>
                 </div>

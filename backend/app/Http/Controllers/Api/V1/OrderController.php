@@ -154,6 +154,29 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    /**
+     * Customer cancels their own order — allowed only while PENDING (before
+     * the kitchen confirms). Anything past PENDING must go through support
+     * so we don't cancel food that's already being prepared or delivered.
+     */
+    public function cancelMine(Request $request, string $id): JsonResponse
+    {
+        $order = Order::findOrFail($id);
+
+        abort_unless($order->customer_id === $request->user()->id, 403);
+
+        if ($order->status !== 'PENDING') {
+            return response()->json([
+                'message' => 'This order can no longer be cancelled here. Please contact us.',
+            ], 422);
+        }
+
+        $this->orderService->updateStatus($order, 'CANCELLED', $request->user()->id, 'Cancelled by customer.');
+        AuditService::log('order.cancelled_by_customer', $order, [], null, $request->user());
+
+        return response()->json($order->fresh('statusHistory'));
+    }
+
     public function mySalesSummary(Request $request): JsonResponse
     {
         $eid = $request->user()->id;

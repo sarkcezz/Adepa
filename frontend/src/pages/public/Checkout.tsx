@@ -193,8 +193,9 @@ export default function Checkout() {
 
   return (
     <div className="container-tight py-10">
-      <h1 className="display text-3xl font-bold sm:text-4xl">Checkout</h1>
-      <p className="mt-1 text-night-600">A few details and your pork is on the way.</p>
+      <p className="eyebrow">Almost there</p>
+      <h1 className="display-2 mt-2">Checkout</h1>
+      <p className="mt-2 text-night-600">A few details and your pork is on the way.</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
         <div className="space-y-6">
