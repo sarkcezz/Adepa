@@ -14,11 +14,12 @@ export function PorkMark({ className, variant = 'raw' }: MarkProps) {
   // Background gradient ID is variant-scoped so multiple instances coexist.
   const gradId = `pm-grad-${variant}`
 
+  // Butcher's Heritage palette (bone / oxblood / brass / charcoal)
   const palette = {
-    raw:    { from: '#FAF6EE', to: '#F9D0CA', accent: '#C0281A' },
-    spiced: { from: '#FAF6EE', to: '#F0C56B', accent: '#C0281A' },
-    ready:  { from: '#262626', to: '#1A1A1A', accent: '#D4920A' },
-    event:  { from: '#7F1B11', to: '#C0281A', accent: '#D4920A' },
+    raw:    { from: '#F6F2EA', to: '#F4DADB', accent: '#8E2A2B' },
+    spiced: { from: '#F6F2EA', to: '#E0C883', accent: '#8E2A2B' },
+    ready:  { from: '#292420', to: '#1A1815', accent: '#B08D3C' },
+    event:  { from: '#5C1A1B', to: '#8E2A2B', accent: '#B08D3C' },
   }[variant]
 
   return (
@@ -35,9 +36,9 @@ export function PorkMark({ className, variant = 'raw' }: MarkProps) {
           <stop offset="100%" stopColor={palette.to} />
         </linearGradient>
         <linearGradient id={`${gradId}-meat`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stopColor="#E5867A" />
-          <stop offset="50%" stopColor="#C0281A" />
-          <stop offset="100%" stopColor="#7F1B11" />
+          <stop offset="0%"  stopColor="#C98E8F" />
+          <stop offset="50%" stopColor="#8E2A2B" />
+          <stop offset="100%" stopColor="#5C1A1B" />
         </linearGradient>
       </defs>
 
@@ -52,9 +53,9 @@ export function PorkMark({ className, variant = 'raw' }: MarkProps) {
           opacity="0.95"
         />
         {/* fat striations */}
-        <path d="M5 45 Q60 25 115 45"  stroke="#FAF6EE" strokeWidth="2.5" fill="none" opacity="0.6" />
-        <path d="M5 62 Q60 45 115 62"  stroke="#FAF6EE" strokeWidth="2.5" fill="none" opacity="0.6" />
-        <path d="M5 78 Q60 65 115 78"  stroke="#FAF6EE" strokeWidth="2"   fill="none" opacity="0.4" />
+        <path d="M5 45 Q60 25 115 45"  stroke="#F6F2EA" strokeWidth="2.5" fill="none" opacity="0.6" />
+        <path d="M5 62 Q60 45 115 62"  stroke="#F6F2EA" strokeWidth="2.5" fill="none" opacity="0.6" />
+        <path d="M5 78 Q60 65 115 78"  stroke="#F6F2EA" strokeWidth="2"   fill="none" opacity="0.4" />
         {/* highlight */}
         <path d="M10 35 Q60 18 110 35" stroke="#FFF" strokeWidth="1.5" fill="none" opacity="0.35" />
       </g>
@@ -82,22 +83,22 @@ export function AdepaMark({ className }: { className?: string }) {
     >
       <defs>
         <linearGradient id="adepa-mark-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"  stopColor="#C0281A" />
-          <stop offset="100%" stopColor="#7F1B11" />
+          <stop offset="0%"  stopColor="#8E2A2B" />
+          <stop offset="100%" stopColor="#5C1A1B" />
         </linearGradient>
       </defs>
       <rect x="0" y="0" width="40" height="40" rx="10" fill="url(#adepa-mark-grad)" />
       {/* Stylised "A" */}
       <path
         d="M11 30 L20 10 L29 30 M14.5 23 L25.5 23"
-        stroke="#FAF6EE"
+        stroke="#F6F2EA"
         strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
       />
       {/* Flame dot */}
-      <circle cx="20" cy="6" r="1.8" fill="#D4920A" />
+      <circle cx="20" cy="6" r="1.8" fill="#B08D3C" />
     </svg>
   )
 }

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Low-stock alert</title>
 </head>
-<body style="margin:0;background:#FAF6EE;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1A1A1A;">
+<body style="margin:0;background:#F6F2EA;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1A1815;">
   <div style="max-width:600px;margin:0 auto;padding:24px;">
-    <div style="background:#C0281A;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
-      <p style="margin:0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#D4920A;font-weight:600;">Inventory alert</p>
+    <div style="background:#8E2A2B;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
+      <p style="margin:0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#B08D3C;font-weight:600;">Inventory alert</p>
       <h1 style="margin:6px 0 0;font-size:24px;font-family:'Playfair Display',Georgia,serif;">{{ $products->count() }} product{{ $products->count() === 1 ? '' : 's' }} running low</h1>
     </div>
 
@@ -37,7 +37,7 @@
               </td>
               <td style="padding:10px 0;color:#525252;">{{ $p->product_line }}</td>
               <td align="right" style="padding:10px 0;">
-                <span style="background:{{ $p->stock_qty === 0 ? '#FCEAE7;color:#7F1B11' : '#FBEFD2;color:#7C5506' }};padding:3px 10px;border-radius:999px;font-weight:700;font-size:13px;">
+                <span style="background:{{ $p->stock_qty === 0 ? '#FBF0F0;color:#5C1A1B' : '#F8F1DE;color:#695322' }};padding:3px 10px;border-radius:999px;font-weight:700;font-size:13px;">
                   {{ $p->stock_qty }}
                 </span>
               </td>
@@ -48,7 +48,7 @@
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid #E5E5E5;">
         <a href="{{ rtrim(env('FRONTEND_URL'), '/') }}/admin/products"
-           style="display:inline-block;background:#C0281A;color:#fff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;font-size:13px;">
+           style="display:inline-block;background:#8E2A2B;color:#fff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;font-size:13px;">
           Open products in admin →
         </a>
       </div>

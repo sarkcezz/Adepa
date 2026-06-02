@@ -7,15 +7,15 @@ export function RevenueChart({ data }: { data: Row[] }) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#E7E2DA" />
         <XAxis dataKey="label" tick={{ fontSize: 11 }} />
         <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${Math.round(v / 100)}`} />
         <Tooltip
           formatter={(value: number) => formatGhs(value)}
           labelClassName="text-xs"
-          contentStyle={{ borderRadius: 12, border: '1px solid #E5E5E5', fontSize: 12 }}
+          contentStyle={{ borderRadius: 12, border: '1px solid #E7E2DA', fontSize: 12 }}
         />
-        <Line type="monotone" dataKey="revenue_kobo" stroke="#C0281A" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+        <Line type="monotone" dataKey="revenue_kobo" stroke="#8E2A2B" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
       </LineChart>
     </ResponsiveContainer>
   )

@@ -12,10 +12,10 @@
     ? round(($delta / $yesterday['revenue_kobo']) * 100)
     : null;
 @endphp
-<body style="margin:0;background:#FAF6EE;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1A1A1A;">
+<body style="margin:0;background:#F6F2EA;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1A1815;">
   <div style="max-width:600px;margin:0 auto;padding:24px;">
-    <div style="background:linear-gradient(135deg,#262626,#1A1A1A);color:#fff;padding:24px;border-radius:12px 12px 0 0;">
-      <p style="margin:0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#D4920A;font-weight:600;">Daily summary</p>
+    <div style="background:linear-gradient(135deg,#292420,#1A1815);color:#fff;padding:24px;border-radius:12px 12px 0 0;">
+      <p style="margin:0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#B08D3C;font-weight:600;">Daily summary</p>
       <h1 style="margin:6px 0 0;font-size:24px;font-family:'Playfair Display',Georgia,serif;">
         {{ $date->format('l, j F Y') }}
       </h1>
@@ -26,9 +26,9 @@
       <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 8px;">
         <tr>
           <td width="50%" style="padding-right:6px;">
-            <div style="background:#FAF6EE;padding:16px;border-radius:10px;">
+            <div style="background:#F6F2EA;padding:16px;border-radius:10px;">
               <p style="margin:0;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#737373;font-weight:600;">Revenue today</p>
-              <p style="margin:6px 0 0;font-size:24px;font-weight:800;color:#C0281A;font-family:'Playfair Display',Georgia,serif;">{{ $fmt($today['revenue_kobo']) }}</p>
+              <p style="margin:6px 0 0;font-size:24px;font-weight:800;color:#8E2A2B;font-family:'Playfair Display',Georgia,serif;">{{ $fmt($today['revenue_kobo']) }}</p>
               @if($deltaPct !== null)
                 <p style="margin:4px 0 0;font-size:11px;color:{{ $deltaPct >= 0 ? '#15803d' : '#b91c1c' }};">
                   {{ $deltaPct >= 0 ? '▲' : '▼' }} {{ abs($deltaPct) }}% vs. yesterday
@@ -37,9 +37,9 @@
             </div>
           </td>
           <td width="50%" style="padding-left:6px;">
-            <div style="background:#FAF6EE;padding:16px;border-radius:10px;">
+            <div style="background:#F6F2EA;padding:16px;border-radius:10px;">
               <p style="margin:0;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#737373;font-weight:600;">Orders today</p>
-              <p style="margin:6px 0 0;font-size:24px;font-weight:800;color:#1A1A1A;font-family:'Playfair Display',Georgia,serif;">{{ $today['sales_count'] }}</p>
+              <p style="margin:6px 0 0;font-size:24px;font-weight:800;color:#1A1815;font-family:'Playfair Display',Georgia,serif;">{{ $today['sales_count'] }}</p>
               <p style="margin:4px 0 0;font-size:11px;color:#737373;">
                 avg {{ $fmt($today['avg_order_kobo']) }}
               </p>
@@ -57,7 +57,7 @@
               <td width="30" style="padding:8px 0;color:#737373;font-size:12px;">{{ $i + 1 }}.</td>
               <td style="padding:8px 0;"><strong>{{ $p->product_name }}</strong></td>
               <td align="right" style="padding:8px 0;color:#525252;font-size:12px;">{{ $p->qty }} sold</td>
-              <td align="right" width="80" style="padding:8px 0;color:#C0281A;font-weight:600;">{{ $fmt($p->revenue_kobo) }}</td>
+              <td align="right" width="80" style="padding:8px 0;color:#8E2A2B;font-weight:600;">{{ $fmt($p->revenue_kobo) }}</td>
             </tr>
           @endforeach
         </table>
@@ -75,7 +75,7 @@
                 <span style="color:#737373;font-size:11px;font-family:monospace;"> · {{ $e->employee_id }}</span>
               </td>
               <td align="right" style="padding:8px 0;color:#525252;font-size:12px;">{{ $e->orders }} sales</td>
-              <td align="right" width="80" style="padding:8px 0;color:#C0281A;font-weight:600;">{{ $fmt($e->revenue_kobo) }}</td>
+              <td align="right" width="80" style="padding:8px 0;color:#8E2A2B;font-weight:600;">{{ $fmt($e->revenue_kobo) }}</td>
             </tr>
           @endforeach
         </table>
@@ -97,7 +97,7 @@
 
       <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E5E5E5;text-align:center;">
         <a href="{{ rtrim(env('FRONTEND_URL'), '/') }}/admin"
-           style="display:inline-block;background:#C0281A;color:#fff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;font-size:13px;">
+           style="display:inline-block;background:#8E2A2B;color:#fff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;font-size:13px;">
           Open admin dashboard
         </a>
       </div>

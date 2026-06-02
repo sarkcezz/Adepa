@@ -202,15 +202,18 @@ export default function Home() {
 
             <dl className="mt-8 grid grid-cols-2 gap-6">
               {[
-                { icon: Award,      label: '100% Ghana raised',  desc: 'Local farms, ethically sourced' },
-                { icon: ShieldCheck, label: 'Cold-chain sealed', desc: 'Vacuum packed, hygiene certified' },
-                { icon: ChefHat,    label: 'Hand-spiced',         desc: 'Family recipes, never pre-mixed' },
-                { icon: Truck,      label: 'Same-day delivery',   desc: 'Across Accra & Tema before 7pm' },
+                // 'fresh' tone → sage; 'craft' tone → oxblood. The two roles
+                // signal freshness vs. richness side by side.
+                { icon: Award,       label: '100% Ghana raised',  desc: 'Local farms, ethically sourced',   tone: 'sage' },
+                { icon: ShieldCheck, label: 'Cold-chain sealed',  desc: 'Vacuum packed, hygiene certified', tone: 'sage' },
+                { icon: ChefHat,     label: 'Hand-spiced',        desc: 'Family recipes, never pre-mixed',  tone: 'flame' },
+                { icon: Truck,       label: 'Same-day delivery',  desc: 'Across Accra & Tema before 7pm',   tone: 'flame' },
               ].map((f) => {
                 const Icon = f.icon
+                const toneClass = f.tone === 'sage' ? 'bg-sage/10 text-sage-700' : 'bg-flame-50 text-flame'
                 return (
                   <div key={f.label} className="flex gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-flame-50 text-flame">
+                    <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${toneClass}`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>

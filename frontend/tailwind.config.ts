@@ -5,10 +5,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        flame:    { DEFAULT: '#C0281A', 50: '#FCEAE7', 100: '#F9D0CA', 200: '#F3A199', 300: '#EB7367', 400: '#DC4A3B', 500: '#C0281A', 600: '#A02216', 700: '#7F1B11', 800: '#5F140D', 900: '#3F0D08' },
-        gold:     { DEFAULT: '#D4920A', 50: '#FBEFD2', 100: '#F7DEA5', 200: '#F0C56B', 300: '#E5AC36', 400: '#DCA01D', 500: '#D4920A', 600: '#A87308', 700: '#7C5506', 800: '#503704', 900: '#241902' },
-        night:    { DEFAULT: '#1A1A1A', 50: '#F5F5F5', 100: '#E5E5E5', 200: '#D4D4D4', 300: '#9A9A9A', 400: '#6B6B6B', 500: '#525252', 600: '#404040', 700: '#262626', 800: '#171717', 900: '#0A0A0A' },
-        cream:    '#FAF6EE',
+        // ── Butcher's Heritage palette ──────────────────────────────────
+        // Token names kept (flame/gold/night/cream) so the swap ripples
+        // through every page from one place. Values are tinted toward the
+        // brand hue — no pure black or white.
+        //
+        // flame = oxblood (deep wine-red, quality cuts)
+        flame:    { DEFAULT: '#8E2A2B', 50: '#FBF0F0', 100: '#F4DADB', 200: '#E6B1B2', 300: '#D6868A', 400: '#BC5052', 500: '#8E2A2B', 600: '#762122', 700: '#5C1A1B', 800: '#431415', 900: '#2B0D0D' },
+        // gold = aged brass (warm metal accent)
+        gold:     { DEFAULT: '#B08D3C', 50: '#F8F1DE', 100: '#EFE0B6', 200: '#E0C883', 300: '#CFAE55', 400: '#C09C44', 500: '#B08D3C', 600: '#8C6F2E', 700: '#695322', 800: '#473716', 900: '#261D0B' },
+        // sage = heritage butcher green (freshness, the third role)
+        sage:     { DEFAULT: '#6B8068', 50: '#EEF2EC', 100: '#D9E1D5', 200: '#B7C5B1', 300: '#93A78B', 400: '#7B9072', 500: '#6B8068', 600: '#556A53', 700: '#425340', 800: '#2F3A2D', 900: '#1D241C' },
+        // night = warm charcoal (ink, tinted toward brown not pure black)
+        night:    { DEFAULT: '#1A1815', 50: '#F4F2EE', 100: '#E7E2DA', 200: '#D3CCC0', 300: '#9D9488', 400: '#6E665B', 500: '#524B41', 600: '#3D372F', 700: '#292420', 800: '#1F1B17', 900: '#120F0C' },
+        // cream = bone (warm off-white base)
+        cream:    '#F6F2EA',
       },
       fontFamily: {
         display: ['"Playfair Display"', 'serif'],
@@ -29,9 +40,9 @@ const config: Config = {
         'float-y':    'floatY 4s ease-in-out infinite',
       },
       backgroundImage: {
-        'gradient-warm':   'linear-gradient(135deg, #C0281A 0%, #D4920A 100%)',
-        'gradient-flame':  'linear-gradient(180deg, #C0281A 0%, #7F1B11 100%)',
-        'gradient-night':  'linear-gradient(180deg, #262626 0%, #0A0A0A 100%)',
+        'gradient-warm':   'linear-gradient(135deg, #8E2A2B 0%, #B08D3C 100%)',
+        'gradient-flame':  'linear-gradient(180deg, #8E2A2B 0%, #5C1A1B 100%)',
+        'gradient-night':  'linear-gradient(180deg, #292420 0%, #120F0C 100%)',
       },
     },
   },

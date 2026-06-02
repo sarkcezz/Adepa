@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Menu, ShoppingBag, User, X, Instagram, Facebook } from 'lucide-react'
+import { Menu, ShoppingBag, User, X, Instagram, Facebook, MessageCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 import { CartDrawer } from '@/components/cart/CartDrawer'
@@ -247,13 +247,23 @@ export default function PublicLayout() {
             </div>
 
             <div>
-              <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-gold">Contact</h4>
+              <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-gold">Help &amp; contact</h4>
               <ul className="space-y-2.5 text-sm text-night-100/70">
+                <li>
+                  <a
+                    href="https://wa.me/233500000000"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 font-medium text-white transition-colors hover:text-gold"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Need help? WhatsApp us
+                  </a>
+                </li>
                 <li><a href="mailto:orders@adepaporkhub.shop" className="transition-colors hover:text-white">orders@adepaporkhub.shop</a></li>
                 <li>Accra, Ghana</li>
                 <li className="pt-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs text-night-100/80">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse-soft" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-sage/15 px-2.5 py-1 text-xs text-sage-100 ring-1 ring-sage/25">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sage-300 animate-pulse-soft" />
                     Open today · 8am–8pm
                   </span>
                 </li>

@@ -1,6 +1,7 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts'
 
-const COLORS = ['#F59E0B', '#3B82F6', '#D4920A', '#0EA5E9', '#10B981', '#EF4444']
+// Brand-leaning categorical palette: brass, sage, oxblood, slate, green, clay
+const COLORS = ['#B08D3C', '#6B8068', '#8E2A2B', '#7C8AA0', '#557049', '#A8503E']
 const labelMap: Record<string, string> = {
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',
