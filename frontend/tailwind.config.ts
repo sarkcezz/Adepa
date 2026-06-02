@@ -23,7 +23,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ['"Playfair Display"', 'serif'],
-        sans:    ['Inter', 'system-ui', 'sans-serif'],
+        sans:    ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         fadeIn:   { '0%': { opacity: '0' }, '100%': { opacity: '1' } },

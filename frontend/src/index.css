@@ -7,7 +7,7 @@
    ───────────────────────────────────────────────────────────────────────── */
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -92,9 +92,10 @@
     @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-night-700;
   }
 
-  /* Cards */
+  /* Cards — rounded-3xl matches the editorial surface used on customer
+     pages so admin/employee surfaces share one language. */
   .card {
-    @apply rounded-2xl bg-white p-6 shadow-soft ring-1 ring-night-100
+    @apply rounded-3xl bg-white p-6 shadow-soft ring-1 ring-night-100
            transition-shadow duration-300;
   }
   .card-hover {
