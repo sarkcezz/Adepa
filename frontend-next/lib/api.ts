@@ -50,6 +50,25 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
     }
     const message =
       (body as { message?: string })?.message ?? `Request failed (${res.status})`;
+
+    // Session handling — only when an authenticated request fails (a token was
+    // sent). A 401 on the login call itself (no token) must NOT trigger logout.
+    if (typeof window !== "undefined" && token) {
+      if (res.status === 401) {
+        // Token expired / revoked: clear the persisted session and bounce to login.
+        localStorage.removeItem("adepa-auth");
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        if (!window.location.pathname.startsWith("/login")) {
+          window.location.href = `/login?next=${next}`;
+        }
+      } else if (res.status === 423) {
+        // Backend force-password-change gate.
+        if (!window.location.pathname.startsWith("/change-password")) {
+          window.location.href = "/change-password";
+        }
+      }
+    }
+
     throw new ApiError(res.status, message, body);
   }
 
