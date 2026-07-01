@@ -10,7 +10,11 @@ return [
         'http://localhost:5173',
         'http://localhost:3000',
     ],
-    'allowed_origins_patterns' => [],
+    // Vercel preview/production deployments (frontend rebuild) — the URL
+    // changes per deploy, so match the domain rather than pin one host.
+    'allowed_origins_patterns' => [
+        '#^https://[a-z0-9-]+\.vercel\.app$#',
+    ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 86400,
