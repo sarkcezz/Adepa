@@ -6,10 +6,13 @@
  * Idempotent: re-running skips rows that already exist (by natural key).
  * Run: `npm run db:seed`.  Passwords come from env or safe defaults.
  */
+import { config } from "dotenv";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import bcrypt from "bcryptjs";
 import * as schema from "./schema";
+
+config({ path: ".env.local" });
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set.");
@@ -30,7 +33,7 @@ async function main() {
       phone: "0200000001",
       password: hash(adminPw),
       role: "admin",
-      forcePasswordChange: true,
+      force_password_change: true,
     })
     .onConflictDoNothing({ target: schema.users.phone })
     .returning();
@@ -43,9 +46,9 @@ async function main() {
       phone: "0200000002",
       password: hash(staffPw),
       role: "employee",
-      employeeId: "APH-0001",
+      employee_id: "APH-0001",
       position: "Sales",
-      forcePasswordChange: true,
+      force_password_change: true,
     })
     .onConflictDoNothing({ target: schema.users.phone })
     .returning();
@@ -67,12 +70,12 @@ async function main() {
   await db
     .insert(schema.products)
     .values([
-      { name: "Fresh Pork Shoulder", productLine: "RAW", variant: "NONE", weightGrams: 1000, priceKobo: 8500, description: "Butcher-cut fresh pork shoulder, ideal for stews and roasts.", stockQty: 40, heatLevel: 0 },
-      { name: "Pork Belly Slab", productLine: "RAW", variant: "NONE", weightGrams: 800, priceKobo: 9200, description: "Rich, layered pork belly — crisp it or braise it.", stockQty: 25, heatLevel: 0 },
-      { name: "Spiced Pork Sausage — Mild", productLine: "SPICED", variant: "MILD", weightGrams: 500, priceKobo: 6000, description: "House-spiced sausage with a gentle warmth.", ingredients: "Pork, salt, garlic, mild pepper", stockQty: 60, heatLevel: 1 },
-      { name: "Spiced Pork Sausage — Spicy", productLine: "SPICED", variant: "SPICY", weightGrams: 500, priceKobo: 6000, description: "For the heat-seekers: scotch-bonnet forward.", ingredients: "Pork, salt, garlic, scotch bonnet", stockQty: 45, heatLevel: 3 },
-      { name: "Ready Grilled Pork Platter", productLine: "READY_TO_EAT", variant: "MILD", weightGrams: 600, priceKobo: 12000, description: "Charcoal-grilled and ready to serve.", storageInstructions: "Keep refrigerated, consume within 2 days.", stockQty: 20, heatLevel: 2 },
-      { name: "Ready Pork Kebabs (6pc)", productLine: "READY_TO_EAT", variant: "SPICY", weightGrams: 400, priceKobo: 9500, description: "Skewered, spiced, and grilled — grab and go.", stockQty: 30, heatLevel: 3 },
+      { name: "Fresh Pork Shoulder", product_line: "RAW", variant: "NONE", weight_grams: 1000, price_kobo: 8500, description: "Butcher-cut fresh pork shoulder, ideal for stews and roasts.", stock_qty: 40, heat_level: 0 },
+      { name: "Pork Belly Slab", product_line: "RAW", variant: "NONE", weight_grams: 800, price_kobo: 9200, description: "Rich, layered pork belly — crisp it or braise it.", stock_qty: 25, heat_level: 0 },
+      { name: "Spiced Pork Sausage — Mild", product_line: "SPICED", variant: "MILD", weight_grams: 500, price_kobo: 6000, description: "House-spiced sausage with a gentle warmth.", ingredients: "Pork, salt, garlic, mild pepper", stock_qty: 60, heat_level: 1 },
+      { name: "Spiced Pork Sausage — Spicy", product_line: "SPICED", variant: "SPICY", weight_grams: 500, price_kobo: 6000, description: "For the heat-seekers: scotch-bonnet forward.", ingredients: "Pork, salt, garlic, scotch bonnet", stock_qty: 45, heat_level: 3 },
+      { name: "Ready Grilled Pork Platter", product_line: "READY_TO_EAT", variant: "MILD", weight_grams: 600, price_kobo: 12000, description: "Charcoal-grilled and ready to serve.", storage_instructions: "Keep refrigerated, consume within 2 days.", stock_qty: 20, heat_level: 2 },
+      { name: "Ready Pork Kebabs (6pc)", product_line: "READY_TO_EAT", variant: "SPICY", weight_grams: 400, price_kobo: 9500, description: "Skewered, spiced, and grilled — grab and go.", stock_qty: 30, heat_level: 3 },
     ])
     .onConflictDoNothing();
 
@@ -83,10 +86,10 @@ async function main() {
       title: "Weekend Stand — Osu Oxford Street",
       description: "Find our fresh cuts and grilled platters this weekend at Osu.",
       locations: [{ name: "Osu Oxford Street", lat: 5.5557, lng: -0.1829 }],
-      startDate: "2026-07-01",
-      endDate: "2026-12-31",
-      isPublished: true,
-      createdBy: adminId,
+      start_date: "2026-07-01",
+      end_date: "2026-12-31",
+      is_published: true,
+      created_by: adminId,
     })
     .onConflictDoNothing();
 
@@ -95,15 +98,15 @@ async function main() {
     .insert(schema.porkEvents)
     .values({
       name: "Adepa Pork Fest 2026",
-      eventDate: "2026-09-20",
-      eventTime: "12:00:00",
-      venueName: "Accra Polo Club",
-      venueAddress: "Airport Residential Area, Accra",
-      flatRateKobo: 15000,
+      event_date: "2026-09-20",
+      event_time: "12:00:00",
+      venue_name: "Accra Polo Club",
+      venue_address: "Airport Residential Area, Accra",
+      flat_rate_kobo: 15000,
       capacity: 200,
       description: "An afternoon of grilled pork, music, and family fun.",
       status: "PUBLISHED",
-      createdBy: adminId,
+      created_by: adminId,
     })
     .onConflictDoNothing();
 
@@ -113,12 +116,12 @@ async function main() {
     .values({
       name: "Welcome 10%",
       code: "WELCOME10",
-      discountType: "PERCENT",
-      discountValue: 10,
-      minOrderKobo: 5000,
-      validFrom: new Date("2026-01-01"),
-      validTo: new Date("2026-12-31"),
-      isActive: true,
+      discount_type: "PERCENT",
+      discount_value: 10,
+      min_order_kobo: 5000,
+      valid_from: new Date("2026-01-01"),
+      valid_to: new Date("2026-12-31"),
+      is_active: true,
     })
     .onConflictDoNothing({ target: schema.campaigns.code });
 

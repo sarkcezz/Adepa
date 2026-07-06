@@ -3,9 +3,12 @@
  * Requires DATABASE_URL (injected by the Vercel ↔ Neon integration, or set
  * locally in .env.local).
  */
+import { config } from "dotenv";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate } from "drizzle-orm/neon-http/migrator";
+
+config({ path: ".env.local" });
 
 async function main() {
   const url = process.env.DATABASE_URL;
