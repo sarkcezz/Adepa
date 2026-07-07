@@ -12,7 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "db:import": "tsx db/import-mysql.ts"
+    "db:import": "tsx db/import-mysql.ts",
+    "db:seed:demo": "tsx db/seed-demo.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

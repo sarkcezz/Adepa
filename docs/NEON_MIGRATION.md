@@ -29,11 +29,18 @@ moves in behind `/api/*` so the app becomes a single Vercel deployment.
 ## Apply schema + seed
 ```bash
 cd frontend-next
-npm run db:migrate   # applies db/migrations to Neon
-npm run db:seed      # admin + employee + sample catalog
+npm run db:migrate     # applies db/migrations to Neon
+npm run db:seed        # CLEAN LAUNCH: creates only the admin account
+# or, for a populated test dataset:
+npm run db:seed:demo   # admin + employee + 2 customers + sample catalog/campaign/event
 ```
-Seed prints the admin/employee credentials (override via SEED_ADMIN_PASSWORD /
-SEED_STAFF_PASSWORD). `npm run db:studio` opens Drizzle Studio to inspect data.
+`db:seed` is the clean-launch path (chosen data strategy): it creates just the
+first admin — everything else (products, staff, campaigns, events) is built in
+the admin UI. Override the admin via SEED_ADMIN_NAME/EMAIL/PHONE/PASSWORD; the
+account starts with force_password_change so the first login prompts a reset.
+`npm run db:studio` opens Drizzle Studio to inspect data.
+
+If you later want to bring real data over instead, see **Phase 2** below.
 
 ## Phase 2 — importing production data (MySQL → Neon)
 
