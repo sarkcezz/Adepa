@@ -13,7 +13,7 @@ moves in behind `/api/*` so the app becomes a single Vercel deployment.
 
 ## Phases
 1. **Schema** ✅ — MySQL → Drizzle Postgres schema + `0000_init` migration + seed
-2. **Data** — MySQL dump → Postgres load (at cutover; using fresh schema + seed for now)
+2. **Data** ✅ tooling — `npm run db:import` copies the legacy MySQL into Neon (see below)
 3. **Auth** — register / login / employee-login / password reset / change
 4. **Core reads** — products, announcements, events, addresses, orders (GET)
 5. **Orders / POS** — checkout, employee-sale, status machine, Paystack webhooks
@@ -34,6 +34,27 @@ npm run db:seed      # admin + employee + sample catalog
 ```
 Seed prints the admin/employee credentials (override via SEED_ADMIN_PASSWORD /
 SEED_STAFF_PASSWORD). `npm run db:studio` opens Drizzle Studio to inspect data.
+
+## Phase 2 — importing production data (MySQL → Neon)
+
+`db/import-mysql.ts` copies every table from the legacy Laravel MySQL DB into
+Neon in FK-safe order, converting types (tinyint→boolean, JSON→jsonb,
+date/time). **User password hashes carry over**, so existing accounts keep
+their passwords. It TRUNCATEs the Neon tables first (pass `--no-truncate` to
+append). Missing source columns/tables are tolerated.
+
+1. Get a MySQL connection from Hostinger — hPanel → **Databases → Remote MySQL**
+   (whitelist your IP), or open an SSH tunnel to the DB host.
+2. Run it:
+   ```bash
+   cd frontend-next
+   SOURCE_MYSQL_URL="mysql://user:pass@host:3306/dbname" npm run db:import
+   ```
+3. Spot-check with `npm run db:studio`, then re-point the app at `/api`.
+
+Verified against a MySQL 8 instance loaded from `adepa_pork_hub_schema.sql`:
+users (hashes intact), products, campaigns (jsonb), announcements (jsonb),
+orders + items + status history (FKs intact) all copy correctly.
 
 ## Regenerating the schema
 Edit `db/schema.ts`, then `npm run db:generate` to produce the next migration.

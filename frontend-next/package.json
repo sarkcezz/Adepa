@@ -11,7 +11,8 @@
     "db:migrate": "tsx db/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:import": "tsx db/import-mysql.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -42,6 +43,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "mysql2": "^3.22.5",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
     "typescript": "^5"
