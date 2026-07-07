@@ -1,7 +1,9 @@
 import { createHash, randomBytes } from "crypto";
 import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, authTokens } from "@/db/schema";
+import { fail } from "./http";
 
 /** Public user shape returned to clients — never includes the password. */
 export type PublicUser = {
@@ -76,6 +78,24 @@ export async function authenticate(req: Request): Promise<UserRow | null> {
     .set({ last_used_at: new Date() })
     .where(eq(authTokens.id, tok.id));
 
+  return user;
+}
+
+type Role = "customer" | "admin" | "employee";
+
+/**
+ * Guard a Route Handler. Returns the authenticated user, or a NextResponse to
+ * return early. Usage:
+ *   const u = await guard(req, ["admin"]);
+ *   if (u instanceof NextResponse) return u;
+ */
+export async function guard(
+  req: Request,
+  roles?: Role[],
+): Promise<UserRow | NextResponse> {
+  const user = await authenticate(req);
+  if (!user) return fail("Unauthenticated.", 401);
+  if (roles && !roles.includes(user.role)) return fail("This action is unauthorized.", 403);
   return user;
 }
 
