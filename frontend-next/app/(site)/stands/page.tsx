@@ -1,3 +1,6 @@
+// Rendered at request time so same-origin /api is reachable (self-contained backend).
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { Calendar, Clock, MapPin, ArrowUpRight } from "lucide-react";
 import { publicApi } from "@/lib/api";

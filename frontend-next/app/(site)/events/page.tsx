@@ -1,3 +1,6 @@
+// Rendered at request time so same-origin /api is reachable (self-contained backend).
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Calendar, MapPin, Users } from "lucide-react";

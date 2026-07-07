@@ -1,14 +1,27 @@
 /**
- * API client for the Laravel backend.
+ * API client.
  *
- * The same backend powers the old Vite app; this just talks to it over the
- * v1 REST endpoints. Server components call `api()` directly (cached per the
- * `next` options); client components add the bearer token via `apiClient()`.
+ * Defaults to the app's own same-origin `/api` Route Handlers (the ported
+ * backend on Neon). Set NEXT_PUBLIC_API_BASE_URL to an absolute URL to point
+ * at a different backend (e.g. the legacy Laravel API during migration).
+ *
+ * Because server components run in Node — where `fetch` needs an absolute URL —
+ * a relative base is expanded to an absolute origin server-side (VERCEL_URL /
+ * NEXT_PUBLIC_SITE_URL / localhost). In the browser the relative base is used
+ * as-is.
  */
 
-const BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
-  "https://api.adepaporkhub.shop/api/v1";
+const BASE = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "/api";
+
+function resolveUrl(path: string): string {
+  const url = `${BASE}${path}`;
+  if (url.startsWith("http") || typeof window !== "undefined") return url;
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
+    "http://localhost:3000";
+  return `${origin}${url}`;
+}
 
 export class ApiError extends Error {
   constructor(
@@ -31,7 +44,7 @@ interface ApiOptions extends RequestInit {
 export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
   const { token, headers, ...rest } = opts;
 
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(resolveUrl(path), {
     ...rest,
     headers: {
       Accept: "application/json",

@@ -1,3 +1,6 @@
+// Rendered at request time so same-origin /api is reachable (self-contained backend).
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { ArrowRight, Truck, Leaf, ChefHat, ShieldCheck } from "lucide-react";
 import { publicApi } from "@/lib/api";
