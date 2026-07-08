@@ -41,18 +41,29 @@ interface ApiOptions extends RequestInit {
   next?: NextFetchRequestConfig;
 }
 
-export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
-  const { token, headers, ...rest } = opts;
+const TIMEOUT_MS = 15_000;
 
-  const res = await fetch(resolveUrl(path), {
-    ...rest,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-  });
+export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
+  const { token, headers, signal, ...rest } = opts;
+
+  let res: Response;
+  try {
+    res = await fetch(resolveUrl(path), {
+      ...rest,
+      // A dead/unreachable backend would otherwise hang the request
+      // indefinitely (some browsers wait minutes before giving up).
+      signal: signal ?? AbortSignal.timeout(TIMEOUT_MS),
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
+      },
+    });
+  } catch (e) {
+    const timedOut = e instanceof Error && e.name === "TimeoutError";
+    throw new ApiError(0, timedOut ? "The server took too long to respond. Please try again." : "Could not reach the server. Check your connection.");
+  }
 
   if (!res.ok) {
     let body: unknown = null;

@@ -2,7 +2,7 @@
 
 > **Fresh. Spiced. Ready for Every Meal.**
 >
-> A production-ready e-commerce + operations platform for Adepa Pork Hub — built for Hostinger shared hosting.
+> A premium Ghanaian pork e-commerce + operations platform — Next.js on Vercel, Neon Postgres.
 
 ---
 
@@ -10,105 +10,52 @@
 
 ```
 .
-├── backend/                     Laravel 11 API
-├── frontend/                    React 18 + Vite + Tailwind SPA
-├── adepa_pork_hub_schema.sql    Standalone SQL schema (for direct phpMyAdmin import)
-├── DEPLOYMENT.md                Step-by-step Hostinger deployment guide
-└── README.md                    You're here
+├── frontend-next/    Next.js app (storefront, account, staff/POS, admin) + API
+│   ├── app/          Pages + Route Handlers under app/api/*
+│   └── db/           Drizzle schema, migrations, seed scripts
+└── docs/
+    └── NEON_MIGRATION.md   Backend setup + provisioning runbook
 ```
 
 ## Tech stack
 
 | Layer        | Choice |
 |--------------|--------|
-| Backend      | PHP 8.1 + Laravel 11 + Sanctum (token auth) |
-| Database     | MySQL 8.0 |
-| Frontend     | React 18 + TypeScript + Vite + Tailwind |
+| Framework    | Next.js (App Router, Turbopack) + React 19 + TypeScript |
+| API          | Next.js Route Handlers (`app/api/*`) |
+| Database     | Neon serverless Postgres, via Drizzle ORM |
+| Auth         | Bearer tokens (bcrypt passwords) |
 | State        | Zustand (auth + cart persisted to localStorage) |
-| Charts       | Recharts |
+| Styling      | Tailwind v4, shadcn/ui (Base UI) |
 | Payments     | Paystack (popup/inline) |
-| SMS          | Hubtel SMS (Ghana) |
-| Email        | SendGrid SMTP |
-| Images       | Cloudinary (server-side upload) |
-
-## Architecture (Hostinger-shaped)
-
-```
-public_html/                          ← React build + .htaccess (SPA fallback + HTTPS)
-├── index.html
-└── assets/
-
-~/laravel/                            ← Laravel app, outside webroot
-├── app/  config/  database/  routes/
-└── public/  (set as document root for api.adepaporkhub.shop)
-
-Cron:  * * * * *  php ~/laravel/artisan schedule:run
-       └─→ drains DB queue every minute (emails, SMS)
-```
-
-No Node server, no Redis, no WebSockets — order tracking uses 10-second polling against a lightweight `/orders/{id}/status` endpoint.
+| Hosting      | Vercel (frontend + API), Vercel Cron for scheduled jobs |
 
 ## Quick start (local dev)
 
-### Backend
-
 ```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-# Edit .env with local MySQL creds
-php artisan migrate --seed
-php artisan serve                     # → http://localhost:8000
-```
-
-### Frontend
-
-```bash
-cd frontend
+cd frontend-next
 npm install
-cp .env.example .env
-# Set VITE_API_PROXY=http://localhost:8000 for dev
-npm run dev                           # → http://localhost:5173
+cp .env.example .env.local
+# Fill in DATABASE_URL (Neon connection string)
+npm run db:migrate     # apply schema to Neon
+npm run db:seed        # creates the first admin account
+npm run dev            # → http://localhost:3000
 ```
 
-The Vite dev server proxies `/api/*` to Laravel.
+See **[docs/NEON_MIGRATION.md](docs/NEON_MIGRATION.md)** for provisioning Neon,
+seeding options, and the schema workflow.
 
-## Default seeded credentials
+## Data strategy
 
-| Role     | Login                          | Password               |
-|----------|--------------------------------|------------------------|
-| Admin    | `admin@adepaporkhub.shop`       | `ChangeMe@2025!`       |
-| Employee | `APH-0001`                     | `Employee@2025!`       |
-| Customer | `kofi.boateng@gmail.com`       | `Customer@2025!`       |
+Clean launch — no legacy data. `db:seed` creates only the first admin account;
+the product catalog, staff, campaigns, and events are all built through the
+admin UI.
 
-**Change these immediately after first deploy.**
-
-## Deployment
-
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for the full Hostinger walkthrough.
-
-## API surface (highlights)
-
-All routes under `/api/v1`:
-
-- `POST /auth/register`, `/auth/login`, `/auth/employee/login`
-- `GET  /products` (filterable), `/products/{id}`
-- `GET  /announcements/active`, `/events/upcoming`
-- `POST /campaigns/validate` (promo code)
-- `POST /orders` (online), `/orders/employee-sale`
-- `GET  /orders/{id}/status` (lightweight, polled every 10s)
-- `POST /payments/webhook` (Paystack HMAC verified)
-- `GET  /admin/orders`, `/admin/analytics/*`, `/admin/employees`, etc.
-
-## Project highlights
+## Project structure highlights
 
 - ✅ UUID primary keys on all business tables
 - ✅ Prices in pesewas (GHS × 100, integer) — no float math anywhere
 - ✅ Status timeline persisted to `order_status_history`
-- ✅ Email + SMS via queued jobs (database driver, drained by cron)
-- ✅ Paystack webhook with HMAC-SHA512 signature verification
-- ✅ Role-based middleware: customer / employee / admin
-- ✅ CSV export streamed directly (no temp files)
-- ✅ Mobile-first (375px tested), Ghana-tuned phone validation regex
-- ✅ Cloudinary uploads — secrets never exposed to the client
+- ✅ Bearer-token auth with role-based route guards (customer / employee / admin)
+- ✅ Idempotent POS sales (offline queue + client-reference replay protection)
+- ✅ Audit logging on admin mutations
