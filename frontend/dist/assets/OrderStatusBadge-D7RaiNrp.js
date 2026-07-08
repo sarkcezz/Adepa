@@ -1,1 +1,0 @@
-import{j as a,g as n}from"./index-DVhIMhV1.js";import{B as o}from"./Badge-D3IVuTLp.js";const t={PENDING:"warning",CONFIRMED:"info",PREPARING:"gold",OUT_FOR_DELIVERY:"info",DELIVERED:"success",CANCELLED:"danger"};function e({status:r}){return a.jsx(o,{variant:t[r],children:n(r)})}export{e as O};
