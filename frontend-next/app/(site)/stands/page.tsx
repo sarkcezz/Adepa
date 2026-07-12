@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Stand locations",
-  description: "Find Adepa at a stand near you this week — markets and campuses across Accra and Tema.",
+  description: "Find Adepa at a stand near you this week — markets and campuses across Kumasi.",
 };
 
 async function getStands(): Promise<StandAnnouncement[]> {

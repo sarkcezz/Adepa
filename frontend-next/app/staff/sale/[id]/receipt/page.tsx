@@ -55,7 +55,7 @@ export default function ReceiptPage() {
       <div className="receipt mx-auto max-w-md rounded-2xl border border-border/60 bg-white p-6 text-sm text-neutral-900 shadow-sm">
         <div className="text-center">
           <p className="font-[family-name:var(--font-display)] text-xl font-bold">Adepa Pork Hub</p>
-          <p className="mt-0.5 text-[11px] text-neutral-500">Accra, Ghana · orders@adepaporkhub.shop</p>
+          <p className="mt-0.5 text-[11px] text-neutral-500">Ejisu-Krapa, Ashanti · orders@adepaporkhub.shop</p>
         </div>
 
         <div className="my-4 border-t border-dashed border-neutral-300" />

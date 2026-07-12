@@ -37,7 +37,7 @@ export default async function HomePage() {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-primary-foreground/80">
               Ethically raised, butcher-clean cuts and ready-to-eat platters,
-              delivered same-day across Accra and Tema.
+              delivered same-day across Kumasi.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Button
@@ -116,7 +116,7 @@ export default async function HomePage() {
             [Leaf, "Ethically raised", "Local Ghanaian farms, never factory-farmed"],
             [ShieldCheck, "Cold-chain sealed", "Vacuum packed, hygiene certified"],
             [ChefHat, "Hand-spiced", "Family recipes, mixed fresh, never pre-bottled"],
-            [Truck, "Same-day delivery", "Accra & Tema, ordered before 3pm"],
+            [Truck, "Same-day delivery", "Kumasi, ordered before 3pm"],
           ].map(([Icon, title, desc]) => {
             const I = Icon as typeof Leaf;
             return (

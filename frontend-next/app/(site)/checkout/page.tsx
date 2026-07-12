@@ -218,7 +218,7 @@ export default function CheckoutPage() {
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Delivery method</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {([
-                { v: "HOME", icon: Truck, label: "Home delivery", desc: "Across Accra & Tema", price: "GHS 15" },
+                { v: "HOME", icon: Truck, label: "Home delivery", desc: "Across Kumasi", price: "GHS 15" },
                 { v: "PICKUP", icon: Store, label: "Stand pickup", desc: "Collect at a stand", price: "Free" },
               ] as const).map((m) => {
                 const active = method === m.v;

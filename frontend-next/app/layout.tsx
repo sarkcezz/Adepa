@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: "%s · Adepa Pork Hub",
   },
   description:
-    "Fresh, ethically raised Ghanaian pork. Butcher-clean cuts, spiced platters, and ready-to-eat favourites delivered across Accra and Tema.",
+    "Fresh, ethically raised Ghanaian pork. Butcher-clean cuts, spiced platters, and ready-to-eat favourites delivered across Kumasi.",
 };
 
 export const viewport: Viewport = {

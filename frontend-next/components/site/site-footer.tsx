@@ -12,7 +12,7 @@ export function SiteFooter() {
           <Logo />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             Fresh, ethically raised Ghanaian pork. Butcher-clean cuts to fire-grilled platters,
-            delivered across Accra and Tema.
+            delivered across Kumasi.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export function SiteFooter() {
                 orders@adepaporkhub.shop
               </a>
             </li>
-            <li>Accra, Ghana</li>
+            <li>Ejisu-Krapa, Ashanti Region</li>
             <li className="pt-1">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
                 <span className="size-1.5 rounded-full bg-primary" /> Open today · 8am–8pm
