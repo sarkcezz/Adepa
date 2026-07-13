@@ -5,6 +5,8 @@ import { orders, orderStatusHistory } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
 import { audit } from "@/app/api/_lib/admin";
+import { notifyUser } from "@/app/api/_lib/notifications";
+import { STATUS_LABEL } from "@/lib/order";
 
 const STATUSES = ["PENDING", "CONFIRMED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"] as const;
 type Status = (typeof STATUSES)[number];
@@ -35,6 +37,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
   await audit(admin, "order.status", {
     subject_type: "Order", subject_id: id, subject_label: order.order_number, note: b.status,
+  });
+
+  void notifyUser(order.customer_id, {
+    type: "order.status",
+    title: `Order ${order.order_number}: ${STATUS_LABEL[b.status as Status]}`,
+    message: b.note || `Your order is now ${STATUS_LABEL[b.status as Status].toLowerCase()}.`,
+    email: true,
+    sms: true,
   });
 
   return json(order);

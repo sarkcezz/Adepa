@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, XCircle } from "lucide-react";
+import { Plus, Pencil, XCircle, Users, Check } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { formatGhs, formatDate } from "@/lib/format";
-import type { PorkEvent, Paginated } from "@/lib/types";
+import type { PorkEvent, Paginated, EventRegistration } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,12 +26,14 @@ export default function AdminEventsPage() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [regsFor, setRegsFor] = useState<PorkEvent | null>(null);
+  const [regs, setRegs] = useState<EventRegistration[] | null>(null);
 
   function load() {
     if (!token) return;
     api<Paginated<PorkEvent>>("/admin/events", { token }).then((r) => setItems(r.data)).catch(() => setItems([]));
   }
-  useEffect(load, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [token]);  
 
   function startEdit(e: PorkEvent) {
     setDraft({
@@ -67,6 +69,22 @@ export default function AdminEventsPage() {
     catch { toast.error("Could not cancel."); }
   }
 
+  function openRegistrants(e: PorkEvent) {
+    setRegsFor(e);
+    setRegs(null);
+    api<{ data: EventRegistration[] }>(`/admin/events/${e.id}/registrations`, { token: token! })
+      .then((r) => setRegs(r.data))
+      .catch(() => setRegs([]));
+  }
+
+  async function checkIn(reg: EventRegistration) {
+    if (!regsFor) return;
+    try {
+      await api(`/admin/events/${regsFor.id}/registrations/${reg.id}/check-in`, { method: "POST", token: token! });
+      setRegs((prev) => prev?.map((r) => (r.id === reg.id ? { ...r, checked_in: true, checked_in_at: new Date().toISOString() } : r)) ?? null);
+    } catch { toast.error("Could not check in."); }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -93,6 +111,7 @@ export default function AdminEventsPage() {
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-sm">{e.registered_count}/{e.capacity} · <strong>{formatGhs(e.flat_rate_kobo)}</strong></span>
                 <div className="flex items-center gap-1">
+                  <button onClick={() => openRegistrants(e)} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Users className="size-3.5" /> Registrants</button>
                   <button onClick={() => startEdit(e)} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Pencil className="size-3.5" /> Edit</button>
                   {e.status !== "CANCELLED" && <button onClick={() => cancel(e)} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10"><XCircle className="size-3.5" /> Cancel</button>}
                 </div>
@@ -131,6 +150,38 @@ export default function AdminEventsPage() {
               <textarea rows={3} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
             </div>
             <Button className="w-full rounded-full" size="lg" disabled={saving} onClick={save}>{saving ? "Saving…" : draft.id ? "Save changes" : "Create event"}</Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={!!regsFor} onOpenChange={(o) => !o && setRegsFor(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-lg">
+          <SheetTitle className="sr-only">Registrants — {regsFor?.name}</SheetTitle>
+          <div className="border-b border-border/60 px-6 py-4">
+            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">Registrants</h2>
+            <p className="text-sm text-muted-foreground">{regsFor?.name}</p>
+          </div>
+          <div className="divide-y divide-border/60">
+            {regs === null ? (
+              <div className="space-y-2 p-6">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+            ) : regs.length === 0 ? (
+              <p className="p-6 text-center text-sm text-muted-foreground">No registrants yet.</p>
+            ) : (
+              regs.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-3 px-6 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{r.customer_name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{r.customer_phone}{r.customer_email ? ` · ${r.customer_email}` : ""}</p>
+                    <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.payment_status === "PAID" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{r.payment_status}</span>
+                  </div>
+                  {r.checked_in ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary"><Check className="size-3.5" /> Checked in</span>
+                  ) : (
+                    <Button size="sm" className="shrink-0 rounded-full" onClick={() => checkIn(r)}>Check in</Button>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </SheetContent>
       </Sheet>

@@ -40,7 +40,8 @@ export default function AdminOrdersPage() {
       .catch(() => setOrders([]));
   }
 
-  useEffect(load, [token, debounced, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reload the list when filters change; load() clears to a loading skeleton before refetching.
+  useEffect(load, [token, debounced, statusFilter]);
 
   async function updateStatus(id: string, status: OrderStatus) {
     try {

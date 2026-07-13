@@ -53,6 +53,26 @@ export interface PorkEvent {
   status: "DRAFT" | "PUBLISHED" | "CANCELLED";
 }
 
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface EventRegistration {
+  id: string;
+  payment_status: "PENDING" | "PAID" | "FAILED";
+  checked_in: boolean;
+  checked_in_at: string | null;
+  created_at: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string | null;
+}
+
 export interface Address {
   id: string;
   label: string;

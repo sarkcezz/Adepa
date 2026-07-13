@@ -59,6 +59,7 @@ export const cartSubtotal = (items: CartItem[]) =>
  */
 export function useHasMounted() {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR hydration guard: "has this mounted on the client" can only be known inside an effect.
   useEffect(() => setMounted(true), []);
   return mounted;
 }

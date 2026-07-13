@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Tag } from "lucide-react";
 import { formatGhs } from "@/lib/format";
 import {
@@ -36,15 +36,11 @@ export function LineDiscountDialog({
   currentKobo,
   onApply,
 }: Props) {
+  // The parent only mounts this component while the dialog is open (a fresh
+  // instance per product), so initial state can read straight from props —
+  // no reset-on-open effect needed.
   const [mode, setMode] = useState<Mode>("amount");
-  const [value, setValue] = useState("");
-
-  useEffect(() => {
-    if (open) {
-      setMode("amount");
-      setValue(currentKobo > 0 ? (currentKobo / 100).toString() : "");
-    }
-  }, [open, currentKobo]);
+  const [value, setValue] = useState(currentKobo > 0 ? (currentKobo / 100).toString() : "");
 
   const discountKobo = useMemo(() => {
     const n = parseFloat(value);

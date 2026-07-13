@@ -120,6 +120,7 @@ export function useOfflineQueue(token: string | null) {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial read of the client-only IndexedDB queue, then subscribes below.
     refresh();
     const goOnline = async () => {
       setOnline(true);

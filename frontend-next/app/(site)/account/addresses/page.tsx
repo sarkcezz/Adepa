@@ -34,7 +34,7 @@ export default function AddressesPage() {
     if (!token) return;
     api<Address[]>("/addresses", { token }).then(setItems).catch(() => setItems([]));
   }
-  useEffect(load, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [token]);  
 
   if (!mounted || !token) return null;
 

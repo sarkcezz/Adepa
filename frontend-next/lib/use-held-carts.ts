@@ -42,6 +42,7 @@ export function useHeldCarts() {
   const [carts, setCarts] = useState<HeldCart[]>([]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial read of the client-only localStorage source, then subscribes below.
     setCarts(readAll());
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) setCarts(readAll());

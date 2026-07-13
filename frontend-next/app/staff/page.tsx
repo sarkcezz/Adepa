@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search, Plus, Minus, Trash2, MapPin, Banknote, Smartphone, CreditCard,
@@ -59,6 +59,7 @@ export default function PosPage() {
   const { carts: heldCarts, hold, resume, discard, count: heldCount } = useHeldCarts();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial read of the client-only localStorage source.
     if (mounted) setStand(localStorage.getItem(STAND_KEY) || "");
   }, [mounted]);
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function PosPage() {
   // Debounced customer lookup by phone.
   useEffect(() => {
     const p = phone.trim();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clear the stale match immediately when the phone/token inputs change, before the debounced lookup below resolves a new one.
     setCustomer(null);
     if (p.length < 6 || !token) return;
     setLookingUp(true);
@@ -119,11 +121,11 @@ export default function PosPage() {
     setCart((c) => c.map((l) => (l.product.id === id ? { ...l, discountKobo: kobo } : l)));
 
   // Barcode: match scanned code to a product by id or name (no SKU column).
-  const productsRef = useRef<Product[] | null>(null);
-  productsRef.current = products;
+  // useBarcodeScanner keeps its own ref to the latest onScan internally, so
+  // handleScan's identity is free to change with `products` — no manual ref needed.
   const handleScan = useCallback(
     (code: string) => {
-      const list = productsRef.current ?? [];
+      const list = products ?? [];
       const lower = code.toLowerCase().trim();
       const match =
         list.find((p) => p.id === code) ||
@@ -136,7 +138,7 @@ export default function PosPage() {
         toast.error(`No product matches "${code}"`);
       }
     },
-    [addToCart],
+    [products, addToCart],
   );
   useBarcodeScanner({ onScan: handleScan, enabled: !scannerOpen && !discountFor });
 

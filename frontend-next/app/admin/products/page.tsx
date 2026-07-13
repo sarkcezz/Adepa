@@ -46,7 +46,7 @@ export default function AdminProductsPage() {
       .then((r) => setItems(r.data))
       .catch(() => setItems([]));
   }
-  useEffect(load, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [token]);  
 
   function startCreate() {
     setDraft(EMPTY);

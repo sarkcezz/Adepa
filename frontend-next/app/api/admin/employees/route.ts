@@ -8,6 +8,7 @@ import { users } from "@/db/schema";
 import { body, json, paginate, validationError } from "@/app/api/_lib/http";
 import { guard, toPublicUser } from "@/app/api/_lib/auth";
 import { audit, nextEmployeeId, tempPassword } from "@/app/api/_lib/admin";
+import { sendEmail, sendSms } from "@/app/api/_lib/notify";
 
 export async function GET(req: Request) {
   const admin = await guard(req, ["admin"]);
@@ -49,5 +50,10 @@ export async function POST(req: Request) {
     .returning();
 
   await audit(admin, "employee.create", { subject_type: "User", subject_id: employee.id, subject_label: employee.name });
+
+  const welcome = `Welcome to Adepa, ${employee.name}. Your staff ID is ${employee.employee_id} and temporary password is ${pw}. You'll be asked to set a new password on first login.`;
+  void sendSms(employee.phone, welcome);
+  if (employee.email) void sendEmail(employee.email, "Welcome to Adepa Pork Hub", welcome);
+
   return json({ employee: toPublicUser(employee), temp_password: pw }, 201);
 }

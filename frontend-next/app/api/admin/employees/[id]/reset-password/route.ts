@@ -6,6 +6,7 @@ import { users, authTokens } from "@/db/schema";
 import { fail, json } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
 import { audit, tempPassword } from "@/app/api/_lib/admin";
+import { sendEmail, sendSms } from "@/app/api/_lib/notify";
 
 /** POST /admin/employees/:id/reset-password — issue a new temp password, ending sessions. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -23,6 +24,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   await db.delete(authTokens).where(eq(authTokens.user_id, id));
   await audit(admin, "employee.reset_password", { subject_type: "User", subject_id: id, subject_label: employee.name });
+
+  const message = `Your Adepa password was reset. New temporary password: ${pw}. You'll be asked to set a new one on next login.`;
+  void sendSms(employee.phone, message);
+  if (employee.email) void sendEmail(employee.email, "Your Adepa password was reset", message);
 
   return json({ temp_password: pw });
 }

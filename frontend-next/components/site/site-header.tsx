@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { useCart, cartCount, useHasMounted } from "@/lib/cart-store";
+import { NotificationBell } from "@/components/notification-bell";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -65,6 +66,7 @@ export function SiteHeader() {
             <ShoppingBag className="size-5" />
             <CartBadge />
           </Button>
+          <NotificationBell />
           <Button variant="ghost" size="icon" className="rounded-full max-md:hidden" render={<Link href="/account" aria-label="Account" />}>
             <User className="size-5" />
           </Button>

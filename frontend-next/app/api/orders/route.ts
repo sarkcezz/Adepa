@@ -13,6 +13,9 @@ import {
   validateCampaign,
   type CartItem,
 } from "@/app/api/_lib/orders";
+import { verifyTransaction } from "@/app/api/_lib/paystack";
+import { notifyUser } from "@/app/api/_lib/notifications";
+import { formatGhs } from "@/lib/format";
 
 /** POST /orders — customer checkout. */
 export async function POST(req: Request) {
@@ -73,8 +76,18 @@ export async function POST(req: Request) {
   if (freeDelivery) deliveryFee = 0;
   const total = Math.max(0, subtotal + deliveryFee - discount);
 
+  // A reference means the customer completed the Paystack popup — confirm the
+  // charge actually cleared, for the amount we expect, before trusting it.
+  let paid = false;
+  if (b.paystack_reference && b.delivery_method !== "PICKUP") {
+    const verified = await verifyTransaction(b.paystack_reference, total);
+    if (!verified.ok) {
+      return fail("We couldn't confirm this payment. If you were charged, contact support before retrying.", 402);
+    }
+    paid = true;
+  }
+
   const orderNumber = await nextOrderNumber();
-  const paid = !!b.paystack_reference && b.delivery_method !== "PICKUP";
 
   const [order] = await db
     .insert(orders)
@@ -117,6 +130,14 @@ export async function POST(req: Request) {
       discount_applied_kobo: discount,
     });
   }
+
+  void notifyUser(user.id, {
+    type: "order.placed",
+    title: `Order ${order.order_number} received`,
+    message: `We've got your order for ${formatGhs(total)}. We'll update you as it moves.`,
+    email: true,
+    sms: true,
+  });
 
   return json(order, 201);
 }

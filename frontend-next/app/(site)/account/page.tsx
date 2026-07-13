@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Truck, ArrowRight, ShoppingBag } from "lucide-react";
+import { LogOut, Truck, ArrowRight, ShoppingBag, Settings, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
@@ -54,9 +54,17 @@ export default function AccountPage() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{user.email || user.phone}</p>
         </div>
-        <Button variant="outline" className="rounded-full" onClick={signOut}>
-          <LogOut className="size-4" /> Sign out
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" className="rounded-full" render={<Link href="/account/settings" />}>
+            <Settings className="size-4" /> Edit profile
+          </Button>
+          <Button variant="outline" className="rounded-full" render={<Link href="/account/addresses" />}>
+            <MapPin className="size-4" /> Addresses
+          </Button>
+          <Button variant="outline" className="rounded-full" onClick={signOut}>
+            <LogOut className="size-4" /> Sign out
+          </Button>
+        </div>
       </div>
 
       {/* Live order or browse CTA */}

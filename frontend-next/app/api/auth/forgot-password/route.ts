@@ -2,14 +2,19 @@ import { randomBytes } from "crypto";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users, passwordResetTokens } from "@/db/schema";
-import { body, json } from "@/app/api/_lib/http";
+import { body, fail, json } from "@/app/api/_lib/http";
+import { sendEmail } from "@/app/api/_lib/notify";
+import { rateLimit, clientIp } from "@/app/api/_lib/rate-limit";
+import { siteUrl } from "@/lib/site";
 
 /**
  * POST /auth/forgot-password — issue a reset token. Always returns a generic
- * success (no account enumeration). Email delivery is wired up in Phase 7;
- * for now the token is persisted for the reset step.
+ * success (no account enumeration).
  */
 export async function POST(req: Request) {
+  const limit = rateLimit(`forgot-password:${clientIp(req)}`, 5, 60 * 60_000);
+  if (!limit.allowed) return fail(`Too many attempts. Try again in ${limit.retryAfterSec}s.`, 429);
+
   const b = await body<{ email?: string }>(req);
   const email = b.email?.trim().toLowerCase();
   const generic = { message: "If an account exists, a reset link has been sent." };
@@ -22,7 +27,13 @@ export async function POST(req: Request) {
       .insert(passwordResetTokens)
       .values({ email, token, created_at: new Date() })
       .onConflictDoUpdate({ target: passwordResetTokens.email, set: { token, created_at: new Date() } });
-    // TODO(phase-7): email the reset link containing `token`.
+
+    const link = `${siteUrl()}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
+    void sendEmail(
+      email,
+      "Reset your Adepa password",
+      `Reset your password: ${link}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
+    );
   }
 
   return json(generic);

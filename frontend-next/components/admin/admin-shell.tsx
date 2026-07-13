@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth-store";
 import { useHasMounted } from "@/lib/cart-store";
 import { Logo } from "@/components/site/logo";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
 type Item = { href: string; label: string; icon: typeof LayoutDashboard; soon?: boolean };
 
@@ -42,24 +43,9 @@ const GROUPS: { heading: string; items: Item[] }[] = [
   },
 ];
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
-  const mounted = useHasMounted();
-  const pathname = usePathname();
-  const router = useRouter();
-  const { user, token, logout } = useAuth();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (!token) router.replace("/login?next=/admin");
-    else if (user && user.role !== "admin") router.replace("/");
-  }, [mounted, token, user, router]);
-
-  if (!mounted || !token || user?.role !== "admin") return null;
-
+function NavList({ pathname, onNavigate }: { pathname: string; onNavigate: () => void }) {
   const active = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
-
-  const NavList = () => (
+  return (
     <nav className="space-y-5">
       {GROUPS.map((g) => (
         <div key={g.heading}>
@@ -80,7 +66,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={n.href}
                   href={n.href}
-                  onClick={() => setOpen(false)}
+                  onClick={onNavigate}
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                     active(n.href) ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary",
@@ -96,6 +82,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ))}
     </nav>
   );
+}
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  const mounted = useHasMounted();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, token, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (!token) router.replace("/login?next=/admin");
+    else if (user && user.role !== "admin") router.replace("/");
+  }, [mounted, token, user, router]);
+
+  if (!mounted || !token || user?.role !== "admin") return null;
 
   return (
     <div className="min-h-svh bg-secondary/20">
@@ -112,6 +114,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <Link href="/" className="hidden items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground sm:inline-flex">
               View store <ExternalLink className="size-3.5" />
             </Link>
@@ -126,7 +129,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {/* Desktop sidebar */}
         <aside className="hidden lg:block">
           <div className="sticky top-24 rounded-3xl border border-border/60 bg-card p-4">
-            <NavList />
+            <NavList pathname={pathname} onNavigate={() => setOpen(false)} />
           </div>
         </aside>
 
@@ -135,7 +138,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setOpen(false)}>
             <div className="absolute left-0 top-0 h-full w-72 max-w-[85vw] overflow-y-auto bg-card p-5" onClick={(e) => e.stopPropagation()}>
               <div className="mb-5"><Logo /></div>
-              <NavList />
+              <NavList pathname={pathname} onNavigate={() => setOpen(false)} />
             </div>
           </div>
         )}

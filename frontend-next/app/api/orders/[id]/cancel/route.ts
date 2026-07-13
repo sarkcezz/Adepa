@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { orders, orderStatusHistory } from "@/db/schema";
 import { fail, json } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
+import { sendEmail } from "@/app/api/_lib/notify";
 
 /** POST /orders/:id/cancel — customer cancels their own order, PENDING only. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +30,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     changed_by: user.id,
     note: "Cancelled by customer.",
   });
+
+  void sendEmail(
+    process.env.ADMIN_ALERT_EMAIL ?? "admin@adepaporkhub.shop",
+    `Order ${order.order_number} cancelled by customer`,
+    `${user.name} (${user.phone}) cancelled order ${order.order_number} before confirmation.`,
+  );
 
   return json(updated);
 }

@@ -32,7 +32,7 @@ export default function AdminEmployeesPage() {
     if (!token) return;
     api<Paginated<User>>("/admin/employees", { token }).then((r) => setItems(r.data)).catch(() => setItems([]));
   }
-  useEffect(load, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [token]);  
 
   function startEdit(e: User) {
     setDraft({ id: e.id, name: e.name, phone: e.phone, email: e.email || "", position: e.position || "cashier" });

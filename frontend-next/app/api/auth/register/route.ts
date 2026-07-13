@@ -4,8 +4,12 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
 import { issueToken, toPublicUser } from "@/app/api/_lib/auth";
+import { rateLimit, clientIp } from "@/app/api/_lib/rate-limit";
 
 export async function POST(req: Request) {
+  const limit = rateLimit(`register:${clientIp(req)}`, 10, 60 * 60_000);
+  if (!limit.allowed) return fail(`Too many attempts. Try again in ${limit.retryAfterSec}s.`, 429);
+
   const b = await body<{ name?: string; email?: string; phone?: string; password?: string }>(req);
   const errors: Record<string, string[]> = {};
   if (!b.name?.trim()) errors.name = ["The name field is required."];

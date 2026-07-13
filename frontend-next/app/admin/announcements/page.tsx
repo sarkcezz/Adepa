@@ -33,7 +33,7 @@ export default function AdminAnnouncementsPage() {
     if (!token) return;
     api<Paginated<Ann>>("/admin/announcements", { token }).then((r) => setItems(r.data)).catch(() => setItems([]));
   }
-  useEffect(load, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [token]);  
 
   function startEdit(a: Ann) {
     setDraft({

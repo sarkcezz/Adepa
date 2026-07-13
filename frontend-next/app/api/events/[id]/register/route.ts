@@ -4,12 +4,9 @@ import { db } from "@/db";
 import { porkEvents, eventRegistrations } from "@/db/schema";
 import { body, fail, json } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
+import { verifyTransaction } from "@/app/api/_lib/paystack";
 
-/**
- * POST /events/:id/register — register the signed-in customer for an event.
- * Paystack verification is deferred (Phase 5b); a supplied reference is
- * currently trusted and marked PAID, otherwise the registration is PENDING.
- */
+/** POST /events/:id/register — register the signed-in customer for an event. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await guard(req);
   if (user instanceof NextResponse) return user;
@@ -28,12 +25,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .limit(1);
   if (existing) return fail("You are already registered for this event.", 422);
 
+  let paid = false;
+  if (b.paystack_reference) {
+    const verified = await verifyTransaction(b.paystack_reference, event.flat_rate_kobo);
+    if (!verified.ok) {
+      return fail("We couldn't confirm this payment. If you were charged, contact support before retrying.", 402);
+    }
+    paid = true;
+  }
+
   const [registration] = await db
     .insert(eventRegistrations)
     .values({
       event_id: id,
       customer_id: user.id,
-      payment_status: b.paystack_reference ? "PAID" : "PENDING",
+      payment_status: paid ? "PAID" : "PENDING",
       paystack_reference: b.paystack_reference ?? null,
     })
     .returning();

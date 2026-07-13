@@ -40,7 +40,7 @@ export default function AdminCampaignsPage() {
     if (!token) return;
     api<Paginated<Campaign>>("/admin/campaigns", { token }).then((r) => setItems(r.data)).catch(() => setItems([]));
   }
-  useEffect(load, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [token]);  
 
   function startEdit(c: Campaign) {
     setDraft({
