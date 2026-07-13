@@ -11,8 +11,8 @@ export function SiteFooter() {
         <div className="md:col-span-1">
           <Logo />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            Fresh, ethically raised Ghanaian pork. Butcher-clean cuts to fire-grilled platters,
-            delivered across Kumasi.
+            Fresh, ethically raised Ghanaian pork from Symas Farms. Butcher-clean cuts to
+            fire-grilled platters, delivered across Kumasi.
           </p>
         </div>
 
@@ -70,6 +70,16 @@ export function SiteFooter() {
             <Link href="/terms" className="hover:text-foreground">Terms</Link>
             <p>Made with care in Ghana</p>
           </div>
+        </div>
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-center gap-1.5 px-4 pb-5 text-xs text-muted-foreground sm:px-6 lg:px-8">
+          <span>Part of</span>
+          <a href="https://symasgroup.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-primary">
+            Symas Group
+          </a>
+          <span>· Pork sourced from</span>
+          <a href="https://symasfarms.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-primary">
+            Symas Farms
+          </a>
         </div>
       </div>
     </footer>

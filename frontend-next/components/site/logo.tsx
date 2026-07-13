@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/** Adepa wordmark with an SVG leaf-and-cut mark. Fresh "Pasture" identity. */
+/** Adepa wordmark with an SVG leaf-and-cut mark, in the brand's Burgundy/Cream palette. */
 export function Logo({ className, light = false }: { className?: string; light?: boolean }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>

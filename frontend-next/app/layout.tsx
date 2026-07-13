@@ -1,16 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Manrope, JetBrains_Mono } from "next/font/google";
+import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
-const display = Bricolage_Grotesque({
+// Shared typography with symasgroup.com and symasfarms.com (Playfair Display
+// for headings, Inter for body) — see Symas group/symasgroup.md §13.
+const display = Playfair_Display({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["500", "600", "700", "800"],
 });
 
-const body = Manrope({
+const body = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -28,11 +30,11 @@ export const metadata: Metadata = {
     template: "%s · Adepa Pork Hub",
   },
   description:
-    "Fresh, ethically raised Ghanaian pork. Butcher-clean cuts, spiced platters, and ready-to-eat favourites delivered across Kumasi.",
+    "Fresh, ethically raised Ghanaian pork from Symas Farms. Butcher-clean cuts, spiced platters, and ready-to-eat favourites delivered across Kumasi.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#165C42",
+  themeColor: "#5C1F2E",
 };
 
 export default function RootLayout({
