@@ -4,8 +4,7 @@
 >
 > A premium Ghanaian pork e-commerce + operations platform — Next.js on Vercel, Neon Postgres.
 
-The legacy Laravel/Vite stack that ran on Hostinger has been retired — it is
-no longer used anywhere in this project.
+---
 
 ## What's in this repo
 
