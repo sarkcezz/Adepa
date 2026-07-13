@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { desc, inArray } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { body, json, paginate, validationError } from "@/app/api/_lib/http";
@@ -52,8 +53,10 @@ export async function POST(req: Request) {
   await audit(admin, "employee.create", { subject_type: "User", subject_id: employee.id, subject_label: employee.name });
 
   const welcome = `Welcome to Adepa, ${employee.name}. Your staff ID is ${employee.employee_id} and temporary password is ${pw}. You'll be asked to set a new password on first login.`;
-  void sendSms(employee.phone, welcome);
-  if (employee.email) void sendEmail(employee.email, "Welcome to Adepa Pork Hub", welcome);
+  waitUntil(Promise.all([
+    sendSms(employee.phone, welcome),
+    employee.email ? sendEmail(employee.email, "Welcome to Adepa Pork Hub", welcome) : Promise.resolve(),
+  ]));
 
   return json({ employee: toPublicUser(employee), temp_password: pw }, 201);
 }

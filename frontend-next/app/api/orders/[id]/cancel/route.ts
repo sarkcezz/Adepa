@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { orders, orderStatusHistory } from "@/db/schema";
 import { fail, json } from "@/app/api/_lib/http";
@@ -31,11 +32,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     note: "Cancelled by customer.",
   });
 
-  void sendEmail(
+  waitUntil(sendEmail(
     process.env.ADMIN_ALERT_EMAIL ?? "admin@adepaporkhub.shop",
     `Order ${order.order_number} cancelled by customer`,
     `${user.name} (${user.phone}) cancelled order ${order.order_number} before confirmation.`,
-  );
+  ));
 
   return json(updated);
 }

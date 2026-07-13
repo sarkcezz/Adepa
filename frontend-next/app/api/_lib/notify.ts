@@ -1,19 +1,46 @@
+import nodemailer, { type Transporter } from "nodemailer";
+
 /**
  * Notification delivery — email + SMS.
  *
- * Delivery is deferred until provider credentials exist (SMTP / Hubtel SMS),
- * mirroring the deferred Paystack config. Until then these log and no-op so
- * the calling flows (orders, cron) work without external services. Wire the
- * real senders here when the keys are set — every caller already routes
- * through these two functions.
+ * Email sends over SMTP (Hostinger mailbox) once SMTP_HOST is configured;
+ * SMS delivery is still deferred until Hubtel credentials exist. Both no-op
+ * (log only) until their respective env vars are set, so the calling flows
+ * (orders, cron) work without external services either way.
  */
+let transporter: Transporter | null = null;
+
+function getTransporter(): Transporter | null {
+  if (!process.env.SMTP_HOST) return null;
+  if (transporter) return transporter;
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT ?? 465),
+    secure: process.env.SMTP_SECURE !== "false", // true (SSL/465) by default
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
+  return transporter;
+}
+
 export async function sendEmail(to: string, subject: string, body: string): Promise<void> {
-  if (!process.env.SMTP_URL && !process.env.RESEND_API_KEY) {
+  const t = getTransporter();
+  if (!t) {
     console.log(`[email:noop] → ${to} :: ${subject}`);
     return;
   }
-  // TODO: integrate Resend/SMTP here using RESEND_API_KEY / SMTP_URL.
-  console.log(`[email] → ${to} :: ${subject}\n${body}`);
+  try {
+    await t.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      text: body,
+    });
+  } catch (e) {
+    console.error(`[email:failed] → ${to} :: ${subject}`, e);
+  }
 }
 
 export async function sendSms(to: string, message: string): Promise<void> {

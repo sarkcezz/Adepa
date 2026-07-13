@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { eq } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { users, passwordResetTokens } from "@/db/schema";
 import { body, fail, json } from "@/app/api/_lib/http";
@@ -29,11 +30,11 @@ export async function POST(req: Request) {
       .onConflictDoUpdate({ target: passwordResetTokens.email, set: { token, created_at: new Date() } });
 
     const link = `${siteUrl()}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
-    void sendEmail(
+    waitUntil(sendEmail(
       email,
       "Reset your Adepa password",
       `Reset your password: ${link}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
-    );
+    ));
   }
 
   return json(generic);

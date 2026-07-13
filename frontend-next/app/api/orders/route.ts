@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { orders, orderItems, orderStatusHistory, campaigns, campaignUsages } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
@@ -131,13 +132,13 @@ export async function POST(req: Request) {
     });
   }
 
-  void notifyUser(user.id, {
+  waitUntil(notifyUser(user.id, {
     type: "order.placed",
     title: `Order ${order.order_number} received`,
     message: `We've got your order for ${formatGhs(total)}. We'll update you as it moves.`,
     email: true,
     sms: true,
-  });
+  }));
 
   return json(order, 201);
 }

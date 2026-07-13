@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { orders, orderStatusHistory } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
@@ -39,13 +40,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     subject_type: "Order", subject_id: id, subject_label: order.order_number, note: b.status,
   });
 
-  void notifyUser(order.customer_id, {
+  waitUntil(notifyUser(order.customer_id, {
     type: "order.status",
     title: `Order ${order.order_number}: ${STATUS_LABEL[b.status as Status]}`,
     message: b.note || `Your order is now ${STATUS_LABEL[b.status as Status].toLowerCase()}.`,
     email: true,
     sms: true,
-  });
+  }));
 
   return json(order);
 }

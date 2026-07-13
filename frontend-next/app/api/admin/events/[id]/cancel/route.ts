@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { porkEvents, eventRegistrations } from "@/db/schema";
 import { fail, json } from "@/app/api/_lib/http";
@@ -26,15 +27,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .select({ customer_id: eventRegistrations.customer_id })
     .from(eventRegistrations)
     .where(eq(eventRegistrations.event_id, id));
-  for (const r of registrants) {
-    void notifyUser(r.customer_id, {
+  waitUntil(Promise.all(registrants.map((r) =>
+    notifyUser(r.customer_id, {
       type: "event.cancelled",
       title: `${row.name} has been cancelled`,
       message: "We're sorry — this event was cancelled. If you paid, we'll be in touch about a refund.",
       email: true,
       sms: true,
-    });
-  }
+    })
+  )));
 
   return json(row);
 }
