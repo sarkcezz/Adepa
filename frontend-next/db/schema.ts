@@ -55,6 +55,7 @@ export const users = pgTable(
     is_active: boolean("is_active").notNull().default(true),
     force_password_change: boolean("force_password_change").notNull().default(false),
     is_guest: boolean("is_guest").notNull().default(false),
+    google_id: varchar("google_id", { length: 255 }).unique(),
     birth_date: date("birth_date"),
     referral_code: varchar("referral_code", { length: 20 }).unique(),
     referred_by_user_id: uuid("referred_by_user_id"),

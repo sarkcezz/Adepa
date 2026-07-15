@@ -5,6 +5,13 @@ import { users } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
 import { guard, toPublicUser } from "@/app/api/_lib/auth";
 
+/** GET /account — the signed-in user's own profile (used to hydrate the client after an OAuth redirect). */
+export async function GET(req: Request) {
+  const user = await guard(req);
+  if (user instanceof NextResponse) return user;
+  return json(toPublicUser(user));
+}
+
 /** PUT /account — the signed-in user updates their own name/email/phone. */
 export async function PUT(req: Request) {
   const user = await guard(req);
