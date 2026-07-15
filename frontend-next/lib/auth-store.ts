@@ -12,7 +12,7 @@ interface AuthState {
   setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<User>;
   register: (data: RegisterInput) => Promise<User>;
-  employeeLogin: (employeeId: string, password: string) => Promise<User>;
+  employeeLogin: (identifier: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -50,10 +50,10 @@ export const useAuth = create<AuthState>()(
         return res.user;
       },
 
-      async employeeLogin(employeeId, password) {
+      async employeeLogin(identifier, password) {
         const res = await api<{ user: User; token: string }>("/auth/employee/login", {
           method: "POST",
-          body: JSON.stringify({ employee_id: employeeId, password }),
+          body: JSON.stringify({ identifier, password }),
         });
         set({ user: res.user, token: res.token });
         return res.user;

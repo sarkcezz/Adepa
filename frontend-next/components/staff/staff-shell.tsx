@@ -22,7 +22,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    if (!token) router.replace("/staff/login");
+    if (!token) router.replace("/login?next=/staff");
     else if (user && user.role !== "employee" && user.role !== "admin") router.replace("/");
   }, [mounted, token, user, router]);
 
@@ -64,7 +64,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
                 <p className="font-mono">{user.employee_id}</p>
                 <p className="text-muted-foreground">{user.name?.split(" ")[0]}</p>
               </div>
-              <button onClick={() => { logout(); router.push("/staff/login"); }} className="grid size-9 place-items-center rounded-full bg-secondary hover:bg-muted" aria-label="Sign out">
+              <button onClick={() => { logout(); router.push("/login"); }} className="grid size-9 place-items-center rounded-full bg-secondary hover:bg-muted" aria-label="Sign out">
                 <LogOut className="size-4" />
               </button>
             </div>

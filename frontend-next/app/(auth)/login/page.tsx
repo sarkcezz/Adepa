@@ -10,23 +10,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import type { Role } from "@/lib/types";
+
+const STAFF_DOMAIN = "@adepaporkhub.shop";
+
+/** Both routes redirect here, so every role lands home in one place. */
+function homeFor(role: Role, next: string | null) {
+  if (next) return next;
+  if (role === "admin") return "/admin";
+  if (role === "employee") return "/staff";
+  return "/account";
+}
 
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const login = useAuth((s) => s.login);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const { login, employeeLogin } = useAuth();
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const user = await login(form.email, form.password);
+      const identifier = form.identifier.trim();
+      // No "@" at all can't be an email, so it's an employee ID; an "@"
+      // address on our own domain is staff too — everything else is a
+      // customer email. One form, one decision point.
+      const isStaff = !identifier.includes("@") || identifier.toLowerCase().endsWith(STAFF_DOMAIN);
+
+      const user = isStaff
+        ? await employeeLogin(identifier, form.password)
+        : await login(identifier, form.password);
+
       toast.success("Welcome back!");
-      const next = params.get("next");
-      const home = user.role === "admin" ? "/admin" : "/account";
-      router.push(next || home);
+      router.push(homeFor(user.role, params.get("next")));
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Could not sign in.");
     } finally {
@@ -41,8 +59,14 @@ function LoginForm() {
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Label htmlFor="identifier">Email or employee ID</Label>
+          <Input
+            id="identifier"
+            required
+            placeholder="you@example.com or APH-0001"
+            value={form.identifier}
+            onChange={(e) => setForm({ ...form, identifier: e.target.value })}
+          />
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -65,12 +89,9 @@ function LoginForm() {
         </Link>
       </p>
 
-      <div className="mt-4 rounded-xl bg-secondary/60 px-3 py-2.5 text-center text-xs text-muted-foreground">
-        Adepa team member?{" "}
-        <Link href="/staff/login" className="font-semibold text-primary hover:underline">
-          Staff portal
-        </Link>
-      </div>
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        Adepa staff sign in above with your employee ID or {STAFF_DOMAIN} email.
+      </p>
     </Card>
   );
 }
