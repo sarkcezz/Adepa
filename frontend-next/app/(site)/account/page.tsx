@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Truck, ArrowRight, ShoppingBag, Settings, MapPin } from "lucide-react";
+import { LogOut, Truck, ArrowRight, ShoppingBag, Settings, MapPin, Heart, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
@@ -65,6 +65,28 @@ export default function AccountPage() {
             <LogOut className="size-4" /> Sign out
           </Button>
         </div>
+      </div>
+
+      {/* Quick links */}
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ["Wishlist", "/account/wishlist", Heart],
+          ["Rewards", "/account/rewards", Gift],
+          ["Subscriptions", "/account/subscriptions", Truck],
+          ["Addresses", "/account/addresses", MapPin],
+        ].map(([label, href, Icon]) => {
+          const IconComp = Icon as typeof Heart;
+          return (
+            <Link
+              key={href as string}
+              href={href as string}
+              className="flex flex-col items-center gap-2 rounded-2xl border border-border/60 bg-card p-4 text-center transition-colors hover:border-primary/40 hover:bg-secondary/40"
+            >
+              <IconComp className="size-5 text-primary" />
+              <span className="text-xs font-semibold">{label as string}</span>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Live order or browse CTA */}

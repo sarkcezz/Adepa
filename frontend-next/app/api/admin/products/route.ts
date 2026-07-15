@@ -42,6 +42,10 @@ export async function POST(req: Request) {
       storage_instructions: b.storage_instructions ?? null,
       heat_level: b.heat_level ?? 0,
       image_url: b.image_url ?? null,
+      gallery_urls: b.gallery_urls ?? null,
+      category: b.category ?? null,
+      nutrition_info: b.nutrition_info ?? null,
+      cooking_tips: b.cooking_tips ?? null,
       stock_qty: b.stock_qty ?? 0,
       is_active: b.is_active ?? true,
     })

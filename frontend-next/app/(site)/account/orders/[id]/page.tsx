@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, RefreshCw, RotateCcw, XCircle, Flame } from "lucide-react";
+import { ArrowLeft, RefreshCw, RotateCcw, XCircle, Flame, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
@@ -172,9 +172,14 @@ export default function OrderDetailPage() {
             ))}
           </ul>
           <div className="mt-4 border-t border-border/60 pt-4">
-            <Button variant="outline" className="rounded-full" disabled={busy === "reorder"} onClick={reorder}>
-              <RotateCcw className="size-4" /> {busy === "reorder" ? "Adding…" : "Order again"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" className="rounded-full" disabled={busy === "reorder"} onClick={reorder}>
+                <RotateCcw className="size-4" /> {busy === "reorder" ? "Adding…" : "Order again"}
+              </Button>
+              <Button variant="outline" className="rounded-full" render={<Link href={`/account/orders/${order.id}/invoice`} />}>
+                <FileText className="size-4" /> Invoice
+              </Button>
+            </div>
           </div>
         </div>
 

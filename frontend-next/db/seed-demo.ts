@@ -70,12 +70,12 @@ async function main() {
   await db
     .insert(schema.products)
     .values([
-      { name: "Fresh Pork Shoulder", product_line: "RAW", variant: "NONE", weight_grams: 1000, price_kobo: 8500, description: "Butcher-cut fresh pork shoulder, ideal for stews and roasts.", stock_qty: 40, heat_level: 0 },
-      { name: "Pork Belly Slab", product_line: "RAW", variant: "NONE", weight_grams: 800, price_kobo: 9200, description: "Rich, layered pork belly — crisp it or braise it.", stock_qty: 25, heat_level: 0 },
-      { name: "Spiced Pork Sausage — Mild", product_line: "SPICED", variant: "MILD", weight_grams: 500, price_kobo: 6000, description: "House-spiced sausage with a gentle warmth.", ingredients: "Pork, salt, garlic, mild pepper", stock_qty: 60, heat_level: 1 },
-      { name: "Spiced Pork Sausage — Spicy", product_line: "SPICED", variant: "SPICY", weight_grams: 500, price_kobo: 6000, description: "For the heat-seekers: scotch-bonnet forward.", ingredients: "Pork, salt, garlic, scotch bonnet", stock_qty: 45, heat_level: 3 },
-      { name: "Ready Grilled Pork Platter", product_line: "READY_TO_EAT", variant: "MILD", weight_grams: 600, price_kobo: 12000, description: "Charcoal-grilled and ready to serve.", storage_instructions: "Keep refrigerated, consume within 2 days.", stock_qty: 20, heat_level: 2 },
-      { name: "Ready Pork Kebabs (6pc)", product_line: "READY_TO_EAT", variant: "SPICY", weight_grams: 400, price_kobo: 9500, description: "Skewered, spiced, and grilled — grab and go.", stock_qty: 30, heat_level: 3 },
+      { name: "Fresh Pork Shoulder", product_line: "RAW", variant: "NONE", weight_grams: 1000, price_kobo: 8500, description: "Butcher-cut fresh pork shoulder, ideal for stews and roasts.", stock_qty: 40, heat_level: 0, category: "SHOULDER", nutrition_info: "Per 100g: ~250 kcal, 20g protein, 18g fat", cooking_tips: "Braise low and slow for 2-3 hours, or slow-roast for pulled pork." },
+      { name: "Pork Belly Slab", product_line: "RAW", variant: "NONE", weight_grams: 800, price_kobo: 9200, description: "Rich, layered pork belly — crisp it or braise it.", stock_qty: 25, heat_level: 0, category: "PORK_BELLY", nutrition_info: "Per 100g: ~518 kcal, 9g protein, 53g fat", cooking_tips: "Score the skin and roast at high heat for crackling, or braise for melt-in-the-mouth texture." },
+      { name: "Spiced Pork Sausage — Mild", product_line: "SPICED", variant: "MILD", weight_grams: 500, price_kobo: 6000, description: "House-spiced sausage with a gentle warmth.", ingredients: "Pork, salt, garlic, mild pepper", stock_qty: 60, heat_level: 1, category: "SAUSAGES", nutrition_info: "Per 100g: ~300 kcal, 14g protein, 25g fat", cooking_tips: "Pan-fry over medium heat, turning often, for 10-12 minutes until browned through." },
+      { name: "Spiced Pork Sausage — Spicy", product_line: "SPICED", variant: "SPICY", weight_grams: 500, price_kobo: 6000, description: "For the heat-seekers: scotch-bonnet forward.", ingredients: "Pork, salt, garlic, scotch bonnet", stock_qty: 45, heat_level: 3, category: "SAUSAGES", nutrition_info: "Per 100g: ~300 kcal, 14g protein, 25g fat", cooking_tips: "Grill over medium-high heat for a smoky char, turning every few minutes." },
+      { name: "Ready Grilled Pork Platter", product_line: "READY_TO_EAT", variant: "MILD", weight_grams: 600, price_kobo: 12000, description: "Charcoal-grilled and ready to serve.", storage_instructions: "Keep refrigerated, consume within 2 days.", stock_qty: 20, heat_level: 2, category: "FAMILY_PACK", cooking_tips: "Reheat covered in a 160°C oven for 10-12 minutes, or enjoy cold." },
+      { name: "Ready Pork Kebabs (6pc)", product_line: "READY_TO_EAT", variant: "SPICY", weight_grams: 400, price_kobo: 9500, description: "Skewered, spiced, and grilled — grab and go.", stock_qty: 30, heat_level: 3, category: "BBQ_PACK", cooking_tips: "Best served warm — reheat on a grill or skillet for 3-4 minutes per side." },
     ])
     .onConflictDoNothing();
 
@@ -124,6 +124,53 @@ async function main() {
       is_active: true,
     })
     .onConflictDoNothing({ target: schema.campaigns.code });
+
+  // ---- blog posts ---------------------------------------------------------
+  await db
+    .insert(schema.blogPosts)
+    .values([
+      {
+        slug: "how-to-store-pork-safely",
+        title: "How to Store Pork Safely at Home",
+        excerpt: "Simple rules for fridge time, freezing, and thawing that keep your pork safe and fresh.",
+        body: "Fresh pork should go straight into the fridge and be used within 2-3 days. If you won't cook it that soon, freeze it — well-wrapped pork keeps well for up to 6 months in the freezer.\n\nWhen you're ready to cook, thaw pork in the fridge overnight rather than at room temperature, which lets bacteria grow. Never refreeze raw pork that's already been thawed; if you have leftovers, cook them fully first, then you can freeze the cooked dish.\n\nAlways use a clean cutting board for raw pork, separate from vegetables and ready-to-eat food, and wash your hands and surfaces afterwards.",
+        category: "Meat Storage",
+        author_name: "Adepa Pork Hub",
+      },
+      {
+        slug: "internal-temperature-guide",
+        title: "The Right Internal Temperature for Cooked Pork",
+        excerpt: "Modern pork is safe at 71°C — here's why you don't need to overcook it anymore.",
+        body: "For years, home cooks were told to cook pork until it was grey all the way through. That advice is outdated. The safe internal temperature for pork is 71°C (160°F) for ground pork and sausages, or 63°C (145°F) with a 3-minute rest for whole cuts like chops and tenderloin.\n\nA meat thermometer is the only reliable way to check — colour alone can be misleading. Cooking to the right temperature (not beyond it) keeps your pork juicy instead of dry.\n\nFor slow-cooked cuts like pork belly or shoulder, you're aiming for tenderness rather than a specific temperature — around 90°C internal is typical for that fall-apart texture.",
+        category: "Food Safety",
+        author_name: "Adepa Pork Hub",
+      },
+      {
+        slug: "why-protein-matters",
+        title: "Why Pork Belongs in a Balanced Diet",
+        excerpt: "A look at the protein, B vitamins, and minerals in lean pork cuts.",
+        body: "Pork is one of the richest natural sources of thiamine (vitamin B1), which supports energy metabolism and nerve function. Lean cuts like tenderloin and loin chops are comparable to chicken breast in protein-to-fat ratio, while still delivering iron, zinc, and B12.\n\nPortion and preparation matter more than the meat itself — grilling, roasting, or stewing with vegetables makes pork part of a balanced plate, while deep-frying or heavy processing adds unnecessary fat and sodium.\n\nAt Adepa, we list nutrition info directly on product pages so you can plan meals with confidence.",
+        category: "Nutrition",
+        author_name: "Adepa Pork Hub",
+      },
+      {
+        slug: "five-minute-pork-marinades",
+        title: "Five Marinades You Can Make in 5 Minutes",
+        excerpt: "Quick flavour combinations for grilling, pan-searing, or oven-roasting pork.",
+        body: "1. Garlic-ginger-soy: soy sauce, grated ginger, minced garlic, a touch of honey.\n\n2. Suya spice: ground peanuts, chili flakes, ginger powder, a little oil.\n\n3. Citrus-herb: lime juice, chopped thyme, garlic, olive oil.\n\n4. Smoky paprika: smoked paprika, cumin, brown sugar, oil, salt.\n\n5. Pepper-tomato: blended tomato, scotch bonnet, onion, a pinch of curry powder.\n\nMarinate for at least 30 minutes for thin cuts like chops, or overnight for larger pieces like shoulder or belly. All five work well on the grill, in a pan, or in the oven.",
+        category: "Cooking Tips",
+        author_name: "Adepa Pork Hub",
+      },
+      {
+        slug: "adepa-pork-fest-2026",
+        title: "Join Us at Adepa Pork Fest 2026",
+        excerpt: "Grilled pork, music, and family fun at the Kumasi Sports Stadium Grounds this September.",
+        body: "We're hosting our first Adepa Pork Fest on 20 September 2026 at the Kumasi Sports Stadium Grounds — an afternoon of live grilling, music, and activities for the whole family.\n\nTickets include a flat-rate entry with food available to purchase on site. Registration is open now on our Events page, and spots are limited, so book early.\n\nWe'll also be running event-only promotions on the day, so bring your appetite.",
+        category: "Events",
+        author_name: "Adepa Pork Hub",
+      },
+    ])
+    .onConflictDoNothing({ target: schema.blogPosts.slug });
 
   console.log("✓ Seed complete.");
   console.log(`  Admin:    admin@adepaporkhub.shop / ${adminPw}${admin ? "" : "  (already existed — unchanged)"}`);

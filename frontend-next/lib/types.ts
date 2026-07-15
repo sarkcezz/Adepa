@@ -17,6 +17,10 @@ export interface Product {
   storage_instructions?: string | null;
   heat_level: number;
   image_url: string | null;
+  gallery_urls?: string[] | null;
+  category?: string | null;
+  nutrition_info?: string | null;
+  cooking_tips?: string | null;
   stock_qty: number;
   is_active: boolean;
 }
@@ -94,6 +98,8 @@ export interface User {
   position?: string | null;
   is_active: boolean;
   force_password_change?: boolean;
+  birth_date?: string | null;
+  referral_code?: string | null;
 }
 
 export type OrderStatus =
@@ -131,6 +137,8 @@ export interface Order {
   subtotal_kobo: number;
   delivery_fee_kobo: number;
   discount_kobo: number;
+  loyalty_kobo?: number;
+  gift_card_kobo?: number;
   total_kobo: number;
   payment_method: string;
   payment_status: string;

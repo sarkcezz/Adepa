@@ -6,6 +6,8 @@ import { orders } from "@/db/schema";
 import { json } from "@/app/api/_lib/http";
 import { assertCron } from "@/app/api/_lib/cron";
 import { sendEmail } from "@/app/api/_lib/notify";
+import { runBirthdayRewards } from "@/app/api/_lib/loyalty";
+import { processDueSubscriptions } from "@/app/api/_lib/subscriptions";
 
 /** GET /api/cron/daily-summary — yesterday's sales digest (Vercel Cron). */
 export async function GET(req: Request) {
@@ -27,5 +29,8 @@ export async function GET(req: Request) {
     `Orders: ${summary.orders}\nRevenue: GHS ${(summary.revenue_kobo / 100).toFixed(2)}`,
   );
 
-  return json({ sent: true, ...summary });
+  const birthdays = await runBirthdayRewards();
+  const subs = await processDueSubscriptions();
+
+  return json({ sent: true, ...summary, birthdays, subscriptions: subs });
 }

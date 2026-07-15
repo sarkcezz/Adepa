@@ -4,8 +4,8 @@ import type { Paginated, Product } from "@/lib/types";
 import { MenuGrid } from "@/components/site/menu-grid";
 
 export const metadata: Metadata = {
-  title: "Menu",
-  description: "Browse Adepa's full range — raw cuts, spiced packs, and ready-to-eat platters.",
+  title: "Buy Premium Pork Online in Ghana",
+  description: "Fresh pork Ghana delivery — buy premium pork online and get fresh pork delivery across Kumasi. Raw cuts, spiced packs, and ready-to-eat platters, sourced from Symas Farms.",
 };
 
 async function getProducts(): Promise<Product[]> {

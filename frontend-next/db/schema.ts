@@ -37,6 +37,8 @@ export const deliveryMethodEnum = pgEnum("delivery_method", ["HOME", "PICKUP", "
 export const paymentMethodEnum = pgEnum("payment_method", ["MOMO", "CARD", "CASH", "BANK"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["PENDING", "PAID", "FAILED"]);
 export const orderSourceEnum = pgEnum("order_source", ["ONLINE", "EMPLOYEE_SALE"]);
+export const subscriptionFrequencyEnum = pgEnum("subscription_frequency", ["WEEKLY", "BIWEEKLY", "MONTHLY"]);
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["ACTIVE", "PAUSED", "CANCELLED"]);
 
 /* ------------------------------------------------------------------ users */
 export const users = pgTable(
@@ -52,6 +54,10 @@ export const users = pgTable(
     position: varchar("position", { length: 20 }),
     is_active: boolean("is_active").notNull().default(true),
     force_password_change: boolean("force_password_change").notNull().default(false),
+    is_guest: boolean("is_guest").notNull().default(false),
+    birth_date: date("birth_date"),
+    referral_code: varchar("referral_code", { length: 20 }).unique(),
+    referred_by_user_id: uuid("referred_by_user_id"),
     created_at: timestamp("created_at").notNull().defaultNow(),
     updated_at: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -110,6 +116,13 @@ export const products = pgTable(
     storage_instructions: text("storage_instructions"),
     heat_level: smallint("heat_level").notNull().default(0),
     image_url: varchar("image_url", { length: 500 }),
+    gallery_urls: jsonb("gallery_urls"),
+    /** Cut-based shop taxonomy (e.g. "PORK_CHOPS", "RIBS", "FAMILY_PACK") — a
+     *  descriptive facet layered on top of product_line/variant, which remain
+     *  the source of truth for cart, staff POS, and campaign logic. */
+    category: varchar("category", { length: 40 }),
+    nutrition_info: text("nutrition_info"),
+    cooking_tips: text("cooking_tips"),
     stock_qty: integer("stock_qty").notNull().default(0),
     is_active: boolean("is_active").notNull().default(true),
     created_at: timestamp("created_at").notNull().defaultNow(),
@@ -213,6 +226,10 @@ export const orders = pgTable(
     paystack_reference: varchar("paystack_reference", { length: 255 }),
     source: orderSourceEnum("source").notNull().default("ONLINE"),
     campaign_id: uuid("campaign_id").references(() => campaigns.id, { onDelete: "set null" }),
+    gift_card_id: uuid("gift_card_id"),
+    gift_card_kobo: integer("gift_card_kobo").notNull().default(0),
+    loyalty_points_redeemed: integer("loyalty_points_redeemed").notNull().default(0),
+    loyalty_kobo: integer("loyalty_kobo").notNull().default(0),
     notes: text("notes"),
     created_at: timestamp("created_at").notNull().defaultNow(),
     updated_at: timestamp("updated_at").notNull().defaultNow(),
@@ -288,6 +305,138 @@ export const notifications = pgTable(
   },
   (t) => [index("notifications_read_idx").on(t.is_read)],
 );
+
+/* ------------------------------------------------------------------ wishlists */
+export const wishlists = pgTable(
+  "wishlists",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    product_id: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("wishlist_unique").on(t.user_id, t.product_id)],
+);
+
+/* --------------------------------------------------------------- reviews */
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    product_id: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+    user_id: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    order_id: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+    rating: smallint("rating").notNull(),
+    comment: text("comment"),
+    photos: jsonb("photos"),
+    is_approved: boolean("is_approved").notNull().default(true),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("reviews_product_idx").on(t.product_id),
+    uniqueIndex("reviews_product_user_unique").on(t.product_id, t.user_id),
+  ],
+);
+
+/* --------------------------------------------------------- loyalty ledger */
+export const loyaltyLedger = pgTable(
+  "loyalty_ledger",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    points: integer("points").notNull(),
+    reason: varchar("reason", { length: 40 }).notNull(),
+    order_id: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+    note: text("note"),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("loyalty_user_idx").on(t.user_id)],
+);
+
+/* ------------------------------------------------------------ subscriptions */
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    items: jsonb("items").notNull(),
+    frequency: subscriptionFrequencyEnum("frequency").notNull(),
+    delivery_method: deliveryMethodEnum("delivery_method").notNull().default("HOME"),
+    address_id: uuid("address_id").references(() => addresses.id, { onDelete: "set null" }),
+    status: subscriptionStatusEnum("status").notNull().default("ACTIVE"),
+    next_delivery_date: date("next_delivery_date").notNull(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("subscriptions_user_idx").on(t.user_id), index("subscriptions_status_idx").on(t.status)],
+);
+
+/* -------------------------------------------------------------- gift cards */
+export const giftCards = pgTable("gift_cards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  initial_balance_kobo: integer("initial_balance_kobo").notNull(),
+  balance_kobo: integer("balance_kobo").notNull(),
+  purchased_by: uuid("purchased_by").references(() => users.id, { onDelete: "set null" }),
+  recipient_name: varchar("recipient_name", { length: 255 }),
+  recipient_email: varchar("recipient_email", { length: 255 }),
+  message: text("message"),
+  is_active: boolean("is_active").notNull().default(true),
+  expires_at: timestamp("expires_at"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* -------------------------------------------------------------- blog posts */
+export const blogPosts = pgTable(
+  "blog_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: varchar("slug", { length: 255 }).notNull().unique(),
+    title: varchar("title", { length: 255 }).notNull(),
+    excerpt: text("excerpt").notNull(),
+    body: text("body").notNull(),
+    category: varchar("category", { length: 60 }).notNull(),
+    cover_image_url: varchar("cover_image_url", { length: 500 }),
+    author_name: varchar("author_name", { length: 255 }).notNull().default("Adepa Pork Hub"),
+    is_published: boolean("is_published").notNull().default(true),
+    published_at: timestamp("published_at").notNull().defaultNow(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("blog_published_idx").on(t.is_published, t.published_at)],
+);
+
+/* ------------------------------------------------------ newsletter signups */
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  is_active: boolean("is_active").notNull().default(true),
+  subscribed_at: timestamp("subscribed_at").notNull().defaultNow(),
+});
+
+/* -------------------------------------------------------------- contact form */
+export const contactMessages = pgTable("contact_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* ---------------------------------------------------------- wholesale leads */
+export const wholesaleInquiries = pgTable("wholesale_inquiries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  business_name: varchar("business_name", { length: 255 }).notNull(),
+  contact_name: varchar("contact_name", { length: 255 }).notNull(),
+  business_type: varchar("business_type", { length: 60 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  estimated_volume: varchar("estimated_volume", { length: 100 }),
+  message: text("message"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
 
 /* ------------------------------------------------------------- audit logs */
 export const auditLogs = pgTable(

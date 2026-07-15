@@ -1,12 +1,15 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, Flame } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import type { Product } from "@/lib/types";
-import { formatGhs, formatWeight, PRODUCT_LINE_LABEL } from "@/lib/format";
+import type { Product, Paginated } from "@/lib/types";
+import { formatGhs, formatWeight, PRODUCT_LINE_LABEL, CATEGORY_LABEL, type ProductCategory } from "@/lib/format";
 import { ProductBuyBox } from "@/components/site/add-to-cart";
+import { WishlistButton } from "@/components/site/wishlist-button";
+import { ProductReviews } from "@/components/site/product-reviews";
+import { ProductGallery } from "@/components/site/product-gallery";
+import { ProductCard } from "@/components/site/product-card";
 
 async function getProduct(id: string): Promise<Product | null> {
   try {
@@ -14,6 +17,18 @@ async function getProduct(id: string): Promise<Product | null> {
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) return null;
     throw e;
+  }
+}
+
+async function getRelated(product: Product): Promise<Product[]> {
+  try {
+    const res = await api<Paginated<Product>>("/products?active_only=1", { next: { revalidate: 60 } });
+    const others = res.data.filter((p) => p.id !== product.id);
+    const sameCategory = product.category ? others.filter((p) => p.category === product.category) : [];
+    const pool = sameCategory.length >= 4 ? sameCategory : [...sameCategory, ...others.filter((p) => p.product_line === product.product_line && !sameCategory.includes(p))];
+    return pool.slice(0, 4);
+  } catch {
+    return [];
   }
 }
 
@@ -35,6 +50,9 @@ export default async function ProductPage({
   const { id } = await params;
   const product = await getProduct(id);
   if (!product) notFound();
+  const related = await getRelated(product);
+
+  const images = [product.image_url, ...(product.gallery_urls ?? [])].filter((u): u is string => !!u);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -47,29 +65,20 @@ export default async function ProductPage({
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden rounded-3xl border border-border/60 bg-secondary/50">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="grid h-full place-items-center">
-              <span className="font-[family-name:var(--font-display)] text-4xl font-bold text-primary/25">
-                Adepa
-              </span>
-            </div>
-          )}
+        <div className="relative">
+          <ProductGallery name={product.name} images={images} />
+          <WishlistButton productId={product.id} className="absolute right-4 top-4" />
         </div>
 
         {/* Info */}
         <div className="flex flex-col">
           <div className="flex flex-wrap items-center gap-2">
             <span className="eyebrow">{PRODUCT_LINE_LABEL[product.product_line]}</span>
+            {product.category && (
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {CATEGORY_LABEL[product.category as ProductCategory] ?? product.category}
+              </span>
+            )}
             {product.variant !== "NONE" && (
               <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {product.variant.toLowerCase()}
@@ -97,7 +106,7 @@ export default async function ProductPage({
 
           <p className="mt-5 leading-relaxed text-foreground/80">{product.description}</p>
 
-          {(product.ingredients || product.storage_instructions) && (
+          {(product.ingredients || product.storage_instructions || product.nutrition_info || product.cooking_tips) && (
             <dl className="mt-6 space-y-4 rounded-2xl bg-secondary/50 p-5 text-sm">
               {product.ingredients && (
                 <div>
@@ -109,6 +118,18 @@ export default async function ProductPage({
                 <div>
                   <dt className="font-semibold">Storage</dt>
                   <dd className="mt-0.5 text-muted-foreground">{product.storage_instructions}</dd>
+                </div>
+              )}
+              {product.cooking_tips && (
+                <div>
+                  <dt className="font-semibold">Cooking tips</dt>
+                  <dd className="mt-0.5 text-muted-foreground">{product.cooking_tips}</dd>
+                </div>
+              )}
+              {product.nutrition_info && (
+                <div>
+                  <dt className="font-semibold">Nutrition</dt>
+                  <dd className="mt-0.5 text-muted-foreground">{product.nutrition_info}</dd>
                 </div>
               )}
             </dl>
@@ -125,6 +146,17 @@ export default async function ProductPage({
           )}
         </div>
       </div>
+
+      <ProductReviews productId={product.id} />
+
+      {related.length > 0 && (
+        <section className="mt-14 border-t border-border/60 pt-10">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold">You might also like</h2>
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+            {related.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

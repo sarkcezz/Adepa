@@ -1,9 +1,10 @@
 import { createHash, randomBytes } from "crypto";
+import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, authTokens } from "@/db/schema";
-import { fail } from "./http";
+import { fail, validationError } from "./http";
 
 /** Public user shape returned to clients — never includes the password. */
 export type PublicUser = {
@@ -16,6 +17,8 @@ export type PublicUser = {
   position: string | null;
   is_active: boolean;
   force_password_change: boolean;
+  birth_date: string | null;
+  referral_code: string | null;
 };
 
 type UserRow = typeof users.$inferSelect;
@@ -31,6 +34,8 @@ export function toPublicUser(u: UserRow): PublicUser {
     position: u.position,
     is_active: u.is_active,
     force_password_change: u.force_password_change,
+    birth_date: u.birth_date,
+    referral_code: u.referral_code,
   };
 }
 
@@ -97,6 +102,53 @@ export async function guard(
   if (!user) return fail("Unauthenticated.", 401);
   if (roles && !roles.includes(user.role)) return fail("This action is unauthorized.", 403);
   return user;
+}
+
+export type GuestInfo = { name?: string; phone?: string; email?: string };
+
+/**
+ * Resolve the acting user for checkout: a signed-in user if a bearer token is
+ * present, otherwise a guest checkout. Guests are stored as ordinary
+ * `users` rows (`is_guest: true`, unusable random password) so every other
+ * order code path — ownership checks, notifications, analytics — needs no
+ * special-casing. Repeat guests are deduped by phone; a phone that belongs to
+ * a real account must sign in instead of checking out as a guest.
+ */
+export async function resolveCheckoutUser(
+  req: Request,
+  guest?: GuestInfo,
+): Promise<UserRow | NextResponse> {
+  const signedIn = await authenticate(req);
+  if (signedIn) return signedIn;
+
+  const name = guest?.name?.trim();
+  const phone = guest?.phone?.trim();
+  const email = guest?.email?.trim().toLowerCase() || null;
+  const errors: Record<string, string[]> = {};
+  if (!name) errors.guest_name = ["Name is required."];
+  if (!phone) errors.guest_phone = ["Phone is required."];
+  if (Object.keys(errors).length) return validationError(errors);
+
+  const [existing] = await db.select().from(users).where(eq(users.phone, phone!)).limit(1);
+  if (existing) {
+    if (!existing.is_guest) {
+      return fail("An account already exists with this phone number. Please sign in to check out.", 409);
+    }
+    return existing;
+  }
+
+  const [guestUser] = await db
+    .insert(users)
+    .values({
+      name: name!,
+      phone: phone!,
+      email,
+      password: bcrypt.hashSync(randomBytes(32).toString("hex"), 12),
+      role: "customer",
+      is_guest: true,
+    })
+    .returning();
+  return guestUser;
 }
 
 /** Revoke a single bearer token (logout). */

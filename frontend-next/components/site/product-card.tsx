@@ -4,6 +4,7 @@ import { Flame } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { formatGhs, formatWeight, PRODUCT_LINE_LABEL } from "@/lib/format";
 import { AddToCartButton } from "./add-to-cart";
+import { WishlistButton } from "./wishlist-button";
 
 export function ProductCard({ product }: { product: Product }) {
   const out = product.stock_qty === 0;
@@ -34,8 +35,10 @@ export function ProductCard({ product }: { product: Product }) {
           {PRODUCT_LINE_LABEL[product.product_line]}
         </span>
 
+        <WishlistButton productId={product.id} className="absolute right-3 top-3" />
+
         {product.heat_level > 0 && (
-          <span className="absolute right-3 top-3 inline-flex items-center gap-0.5 rounded-full bg-accent px-2 py-1 text-accent-foreground">
+          <span className="absolute right-3 top-12 inline-flex items-center gap-0.5 rounded-full bg-accent px-2 py-1 text-accent-foreground">
             {Array.from({ length: product.heat_level }).map((_, i) => (
               <Flame key={i} className="size-3" />
             ))}

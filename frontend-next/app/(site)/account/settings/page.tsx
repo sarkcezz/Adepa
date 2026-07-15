@@ -53,7 +53,7 @@ export default function AccountSettingsPage() {
 
 function SettingsForm({ user, token }: { user: UserType; token: string }) {
   const setUser = useAuth((s) => s.setUser);
-  const [form, setForm] = useState({ name: user.name, email: user.email ?? "", phone: user.phone });
+  const [form, setForm] = useState({ name: user.name, email: user.email ?? "", phone: user.phone, birth_date: user.birth_date ?? "" });
   const [saving, setSaving] = useState(false);
 
   async function save() {
@@ -86,6 +86,10 @@ function SettingsForm({ user, token }: { user: UserType; token: string }) {
       <div className="space-y-1.5">
         <Label>Phone</Label>
         <Input inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Birthday (for rewards)</Label>
+        <Input type="date" value={form.birth_date} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} />
       </div>
       <Button className="w-full rounded-full" disabled={saving} onClick={save}>
         {saving ? "Saving…" : "Save changes"}

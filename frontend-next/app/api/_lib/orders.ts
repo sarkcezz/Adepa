@@ -14,8 +14,6 @@ export async function nextOrderNumber(): Promise<string> {
   return "APH-" + String(next).padStart(6, "0");
 }
 
-export const HOME_DELIVERY_FEE_KOBO = 1500;
-
 type CampaignRow = typeof campaigns.$inferSelect;
 
 /** Discount for a campaign against a subtotal (matches Laravel CampaignService). */

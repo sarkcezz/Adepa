@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import type { Product, ProductLine } from "@/lib/types";
+import { CATEGORY_LABEL, type ProductCategory } from "@/lib/format";
 import { ProductCard } from "./product-card";
 import { cn } from "@/lib/utils";
 
@@ -20,18 +21,27 @@ const SIZES: { value: string; label: string; test: (g: number) => boolean }[] = 
   { value: "large", label: "> 2kg", test: (g) => g > 2000 },
 ];
 
-export function MenuGrid({ products, initialLine = "ALL" }: { products: Product[]; initialLine?: string }) {
+export function MenuGrid({
+  products, initialLine = "ALL", initialCategory = "ALL",
+}: { products: Product[]; initialLine?: string; initialCategory?: string }) {
   const [line, setLine] = useState<string>(initialLine);
   const [size, setSize] = useState<string>("ALL");
+  const [category, setCategory] = useState<string>(initialCategory);
+
+  const categories = useMemo(
+    () => [...new Set(products.map((p) => p.category).filter((c): c is ProductCategory => !!c))],
+    [products],
+  );
 
   const filtered = useMemo(() => {
     const sizeDef = SIZES.find((s) => s.value === size)!;
     return products.filter((p) => {
       if (line !== "ALL" && p.product_line !== line) return false;
       if (size !== "ALL" && !sizeDef.test(p.weight_grams ?? 0)) return false;
+      if (category !== "ALL" && p.category !== category) return false;
       return true;
     });
-  }, [products, line, size]);
+  }, [products, line, size, category]);
 
   const chip = (active: boolean) =>
     cn(
@@ -65,6 +75,19 @@ export function MenuGrid({ products, initialLine = "ALL" }: { products: Product[
             </button>
           ))}
         </div>
+        {categories.length > 0 && (
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <span className="hidden pr-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:inline">
+              Cut
+            </span>
+            <button onClick={() => setCategory("ALL")} className={chip(category === "ALL")}>All cuts</button>
+            {categories.map((c) => (
+              <button key={c} onClick={() => setCategory(c)} className={chip(category === c)}>
+                {CATEGORY_LABEL[c]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {filtered.length > 0 ? (

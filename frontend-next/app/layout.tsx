@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaRegister } from "@/components/pwa-register";
+import { Analytics } from "@/components/analytics";
 import "./globals.css";
 
 // Shared typography with symasgroup.com and symasfarms.com (Playfair Display
@@ -49,6 +50,7 @@ export default function RootLayout({
         {children}
         <Toaster richColors position="top-center" />
         <PwaRegister />
+        <Analytics />
       </body>
     </html>
   );

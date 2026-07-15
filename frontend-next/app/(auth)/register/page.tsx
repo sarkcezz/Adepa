@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Gift } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-store";
 import { ApiError } from "@/lib/api";
@@ -11,8 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
   const register = useAuth((s) => s.register);
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -21,7 +24,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(form);
+      await register({ ...form, ref: ref ?? undefined });
       toast.success("Account created. Welcome to Adepa!");
       router.push("/account");
     } catch (err) {
@@ -35,6 +38,12 @@ export default function RegisterPage() {
     <Card className="p-6 sm:p-8">
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">Create your account</h1>
       <p className="mt-1 text-sm text-muted-foreground">Order in seconds, track in real time.</p>
+
+      {ref && (
+        <p className="mt-4 flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
+          <Gift className="size-3.5" /> You were referred — you&apos;ll both get bonus points on your first order.
+        </p>
+      )}
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <div className="space-y-2">
@@ -66,5 +75,13 @@ export default function RegisterPage() {
         </Link>
       </p>
     </Card>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   );
 }

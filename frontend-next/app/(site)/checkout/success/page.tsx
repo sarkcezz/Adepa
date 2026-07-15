@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-store";
 
 function Success() {
   const params = useSearchParams();
   const order = params.get("order");
+  const { token } = useAuth();
 
   return (
     <div className="mx-auto grid min-h-[70svh] w-full max-w-lg place-items-center px-4 py-12 text-center">
@@ -21,7 +23,7 @@ function Success() {
           {order ? (
             <>
               Your order <span className="font-mono font-semibold text-foreground">{order}</span> is confirmed.
-              We&apos;ll keep you posted as it moves.
+              We&apos;ll keep you posted by email/SMS as it moves.
             </>
           ) : (
             "Your order is confirmed."
@@ -29,9 +31,15 @@ function Success() {
         </p>
 
         <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
-          <Button size="lg" className="rounded-full" render={<Link href="/account" />}>
-            View my orders <ArrowRight className="size-4" />
-          </Button>
+          {token ? (
+            <Button size="lg" className="rounded-full" render={<Link href="/account" />}>
+              View my orders <ArrowRight className="size-4" />
+            </Button>
+          ) : (
+            <Button size="lg" className="rounded-full" render={<Link href="/register" />}>
+              Create an account to track it <ArrowRight className="size-4" />
+            </Button>
+          )}
           <Button size="lg" variant="outline" className="rounded-full" render={<Link href="/menu" />}>
             Keep shopping
           </Button>

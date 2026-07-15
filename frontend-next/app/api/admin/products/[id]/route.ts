@@ -9,7 +9,8 @@ import { audit } from "@/app/api/_lib/admin";
 type ProductInput = typeof products.$inferInsert;
 const FIELDS: (keyof ProductInput)[] = [
   "name", "product_line", "variant", "weight_grams", "price_kobo", "description",
-  "ingredients", "storage_instructions", "heat_level", "image_url", "stock_qty", "is_active",
+  "ingredients", "storage_instructions", "heat_level", "image_url", "gallery_urls",
+  "category", "nutrition_info", "cooking_tips", "stock_qty", "is_active",
 ];
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

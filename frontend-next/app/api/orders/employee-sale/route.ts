@@ -5,6 +5,7 @@ import { orders, orderItems, orderStatusHistory, products } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
 import { loadCartProducts, nextOrderNumber, type CartItem } from "@/app/api/_lib/orders";
+import { recordPoints, pointsForSpend } from "@/app/api/_lib/loyalty";
 
 /** POST /orders/employee-sale — POS sale by staff. Idempotent via client_reference. */
 export async function POST(req: Request) {
@@ -108,6 +109,12 @@ export async function POST(req: Request) {
       .update(products)
       .set({ stock_qty: sql`GREATEST(${products.stock_qty} - ${l.quantity}, 0)` })
       .where(eq(products.id, l.product_id));
+  }
+
+  // Only award points when the sale is attributed to a real customer account
+  // (not the walk-in default of crediting the staff member's own id).
+  if (b.customer_id) {
+    await recordPoints(b.customer_id, pointsForSpend(total), "ORDER_EARNED", order.id);
   }
 
   return json(order, 201);

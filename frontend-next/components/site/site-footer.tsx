@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { Logo } from "./logo";
+import { NewsletterSignup } from "./newsletter-signup";
+import { FacebookIcon, InstagramIcon, TikTokIcon, YoutubeIcon } from "./social-icons";
 
 const WHATSAPP = "233500000000";
 
+const SOCIALS = [
+  { icon: FacebookIcon, href: process.env.NEXT_PUBLIC_FACEBOOK_URL, label: "Facebook" },
+  { icon: InstagramIcon, href: process.env.NEXT_PUBLIC_INSTAGRAM_URL, label: "Instagram" },
+  { icon: TikTokIcon, href: process.env.NEXT_PUBLIC_TIKTOK_URL, label: "TikTok" },
+  { icon: YoutubeIcon, href: process.env.NEXT_PUBLIC_YOUTUBE_URL, label: "YouTube" },
+].filter((s) => !!s.href);
+
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-border/60 bg-secondary/40">
+    <footer className="mt-auto border-t border-border/60 bg-secondary/40 print:hidden">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4 lg:px-8">
         <div className="md:col-span-1">
           <Logo />
@@ -14,23 +23,43 @@ export function SiteFooter() {
             Fresh, ethically raised Ghanaian pork from Symas Farms. Butcher-clean cuts to
             fire-grilled platters, delivered across Kumasi.
           </p>
+          <NewsletterSignup />
+          {SOCIALS.length > 0 && (
+            <div className="mt-4 flex items-center gap-3">
+              {SOCIALS.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="grid size-8 place-items-center rounded-full bg-card text-muted-foreground ring-1 ring-border transition-colors hover:text-primary"
+                >
+                  <s.icon className="size-4" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <FooterCol
           heading="Shop"
           links={[
             ["All products", "/menu"],
-            ["Raw cuts", "/menu?line=RAW"],
-            ["Spiced", "/menu?line=SPICED"],
-            ["Ready to eat", "/menu?line=READY_TO_EAT"],
+            ["Recipes", "/recipes"],
+            ["Wholesale", "/wholesale"],
+            ["Promotions", "/promotions"],
           ]}
         />
         <FooterCol
           heading="Company"
           links={[
+            ["About us", "/about"],
+            ["Why our pork?", "/why-our-pork"],
             ["Stand locations", "/stands"],
             ["Pork events", "/events"],
-            ["Staff portal", "/staff/login"],
+            ["Blog", "/blog"],
+            ["Reviews", "/reviews"],
           ]}
         />
 
@@ -58,6 +87,10 @@ export function SiteFooter() {
                 <span className="size-1.5 rounded-full bg-primary" /> Open today · 8am–8pm
               </span>
             </li>
+            <li className="flex flex-wrap gap-x-3 gap-y-1 pt-2">
+              <Link href="/contact" className="hover:text-foreground">Contact</Link>
+              <Link href="/faqs" className="hover:text-foreground">FAQs</Link>
+            </li>
           </ul>
         </div>
       </div>
@@ -65,9 +98,12 @@ export function SiteFooter() {
       <div className="border-t border-border/60">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} Adepa Pork Hub. All rights reserved.</p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link href="/terms" className="hover:text-foreground">Terms</Link>
+            <Link href="/refund-policy" className="hover:text-foreground">Refund policy</Link>
+            <Link href="/shipping-policy" className="hover:text-foreground">Shipping policy</Link>
+            <Link href="/food-safety" className="hover:text-foreground">Food safety</Link>
             <p>Made with care in Ghana</p>
           </div>
         </div>

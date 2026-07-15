@@ -32,7 +32,7 @@ export default function AddressesPage() {
 
   function load() {
     if (!token) return;
-    api<Address[]>("/addresses", { token }).then(setItems).catch(() => setItems([]));
+    api<{ data: Address[] }>("/addresses", { token }).then((r) => setItems(r.data)).catch(() => setItems([]));
   }
   useEffect(load, [token]);  
 

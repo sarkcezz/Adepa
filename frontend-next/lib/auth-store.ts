@@ -21,6 +21,7 @@ export interface RegisterInput {
   email: string;
   phone: string;
   password: string;
+  ref?: string;
 }
 
 export const useAuth = create<AuthState>()(
