@@ -33,6 +33,7 @@ async function main() {
       phone: "0200000001",
       password: hash(adminPw),
       role: "admin",
+      employee_id: "ADMIN",
       force_password_change: true,
     })
     .onConflictDoNothing({ target: schema.users.phone })

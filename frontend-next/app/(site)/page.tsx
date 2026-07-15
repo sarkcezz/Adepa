@@ -23,19 +23,19 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-primary text-primary-foreground grain">
-        <div className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-accent/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -left-24 size-96 rounded-full bg-white/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary to-foreground text-primary-foreground grain">
+        <div className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-accent/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-24 size-96 rounded-full bg-white/15 blur-3xl" />
         <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:px-8 lg:py-28">
           <div>
-            <span className="inline-block rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+            <span className="inline-block rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground">
               Premium Ghanaian pork
             </span>
             <h1 className="mt-5 font-[family-name:var(--font-display)] text-5xl font-extrabold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
               Fresh from the farm.{" "}
-              <span className="text-accent">Fire-ready</span> for your table.
+              <span className="rounded-lg bg-accent px-2 text-accent-foreground">Fire-ready</span> for your table.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-primary-foreground/80">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-primary-foreground/90">
               Ethically raised, butcher-clean cuts and ready-to-eat platters,
               delivered same-day across Kumasi.
             </p>
@@ -64,8 +64,8 @@ export default async function HomePage() {
                 ["Same-day", "Delivery"],
               ].map(([v, l]) => (
                 <div key={l}>
-                  <dt className="font-[family-name:var(--font-display)] text-2xl font-bold text-accent sm:text-3xl">{v}</dt>
-                  <dd className="mt-1 text-xs uppercase tracking-wider text-primary-foreground/60">{l}</dd>
+                  <dt className="font-[family-name:var(--font-display)] text-2xl font-bold text-primary-foreground sm:text-3xl">{v}</dt>
+                  <dd className="mt-1 text-xs uppercase tracking-wider text-primary-foreground/75">{l}</dd>
                 </div>
               ))}
             </dl>

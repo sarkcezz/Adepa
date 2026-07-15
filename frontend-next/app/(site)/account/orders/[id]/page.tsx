@@ -138,7 +138,7 @@ export default function OrderDetailPage() {
           <p className="mt-1 text-primary-foreground/80">{hero.sub}</p>
           {hero.eta && (
             <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-sm">
-              <Flame className="size-4 text-accent" /> {hero.eta}
+              <Flame className="size-4" /> {hero.eta}
             </p>
           )}
         </div>
