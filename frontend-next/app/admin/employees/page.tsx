@@ -16,8 +16,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 const POSITIONS = ["cashier", "stand_lead", "supervisor", "manager"] as const;
 const POS_LABEL: Record<string, string> = { cashier: "Cashier", stand_lead: "Stand Lead", supervisor: "Supervisor", manager: "Manager" };
 
-type Draft = { id?: string; name: string; phone: string; email: string; position: string };
-const EMPTY: Draft = { name: "", phone: "", email: "", position: "cashier" };
+type Draft = { id?: string; name: string; phone: string; email: string; position: string; password: string };
+const EMPTY: Draft = { name: "", phone: "", email: "", position: "cashier", password: "" };
 
 export default function AdminEmployeesPage() {
   const token = useAuth((s) => s.token);
@@ -27,6 +27,9 @@ export default function AdminEmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [temp, setTemp] = useState<{ name: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [resetTarget, setResetTarget] = useState<User | null>(null);
+  const [resetPw, setResetPw] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   function load() {
     if (!token) return;
@@ -35,13 +38,17 @@ export default function AdminEmployeesPage() {
   useEffect(load, [token]);  
 
   function startEdit(e: User) {
-    setDraft({ id: e.id, name: e.name, phone: e.phone, email: e.email || "", position: e.position || "cashier" });
+    setDraft({ id: e.id, name: e.name, phone: e.phone, email: e.email || "", position: e.position || "cashier", password: "" });
     setOpen(true);
   }
 
   async function save() {
+    if (!draft.id && draft.password && draft.password.length < 8) {
+      return toast.error("Password must be at least 8 characters.");
+    }
     setSaving(true);
-    const body = { name: draft.name, phone: draft.phone, email: draft.email || null, position: draft.position };
+    const body: Record<string, unknown> = { name: draft.name, phone: draft.phone, email: draft.email || null, position: draft.position };
+    if (!draft.id && draft.password) body.password = draft.password;
     try {
       if (draft.id) {
         await api(`/admin/employees/${draft.id}`, { method: "PUT", token: token!, body: JSON.stringify(body) });
@@ -55,12 +62,25 @@ export default function AdminEmployeesPage() {
     finally { setSaving(false); }
   }
 
-  async function resetPwd(e: User) {
-    if (!confirm(`Reset ${e.name}'s password? Their sessions will end.`)) return;
+  function openReset(e: User) {
+    setResetPw("");
+    setResetTarget(e);
+  }
+
+  async function submitReset() {
+    if (!resetTarget) return;
+    if (resetPw && resetPw.length < 8) return toast.error("Password must be at least 8 characters.");
+    setResetting(true);
     try {
-      const res = await api<{ temp_password: string }>(`/admin/employees/${e.id}/reset-password`, { method: "POST", token: token! });
-      setTemp({ name: e.name, password: res.temp_password });
+      const res = await api<{ temp_password: string }>(`/admin/employees/${resetTarget.id}/reset-password`, {
+        method: "POST",
+        token: token!,
+        body: JSON.stringify(resetPw ? { password: resetPw } : {}),
+      });
+      setTemp({ name: resetTarget.name, password: res.temp_password });
+      setResetTarget(null);
     } catch { toast.error("Could not reset."); }
+    finally { setResetting(false); }
   }
 
   async function toggle(e: User) {
@@ -98,7 +118,7 @@ export default function AdminEmployeesPage() {
                     <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{e.is_active ? "Active" : "Disabled"}</span></td>
                     <td className="px-2 py-3"><div className="flex gap-1">
                       <button onClick={() => startEdit(e)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Edit"><Pencil className="size-4" /></button>
-                      <button onClick={() => resetPwd(e)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Reset password"><KeyRound className="size-4" /></button>
+                      <button onClick={() => openReset(e)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Reset password"><KeyRound className="size-4" /></button>
                       <button onClick={() => toggle(e)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Toggle"><Power className="size-4" /></button>
                     </div></td>
                   </tr>
@@ -116,8 +136,15 @@ export default function AdminEmployeesPage() {
           <div className="border-b border-border/60 px-6 py-4"><h2 className="font-[family-name:var(--font-display)] text-xl font-bold">{draft.id ? "Edit employee" : "New employee"}</h2></div>
           <div className="space-y-4 p-6">
             <div className="space-y-1.5"><Label>Full name</Label><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label>Phone</Label><Input value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />{!draft.id && <p className="text-xs text-muted-foreground">A temp password is generated on create.</p>}</div>
+            <div className="space-y-1.5"><Label>Phone</Label><Input value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} /></div>
             <div className="space-y-1.5"><Label>Email (optional)</Label><Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} /></div>
+            {!draft.id && (
+              <div className="space-y-1.5">
+                <Label>Password (optional)</Label>
+                <Input type="text" placeholder="Leave blank to auto-generate" minLength={8} value={draft.password} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+                <p className="text-xs text-muted-foreground">Set one yourself, or leave blank to generate a random temporary password. At least 8 characters.</p>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label>Position</Label>
               <select className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm" value={draft.position} onChange={(e) => setDraft({ ...draft, position: e.target.value })}>
@@ -128,6 +155,29 @@ export default function AdminEmployeesPage() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Reset password */}
+      <Dialog open={!!resetTarget} onOpenChange={(o) => !o && setResetTarget(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogTitle>Reset password</DialogTitle>
+          {resetTarget && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Reset <strong className="text-foreground">{resetTarget.name}</strong>&apos;s password. This ends all of their active sessions.
+              </p>
+              <div className="space-y-1.5">
+                <Label>New password (optional)</Label>
+                <Input type="text" placeholder="Leave blank to auto-generate" minLength={8} value={resetPw} onChange={(e) => setResetPw(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Set one yourself, or leave blank to generate a random temporary password. At least 8 characters.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1 rounded-full" onClick={() => setResetTarget(null)}>Cancel</Button>
+                <Button className="flex-1 rounded-full" disabled={resetting} onClick={submitReset}>{resetting ? "Resetting…" : "Reset password"}</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Temp password reveal */}
       <Dialog open={!!temp} onOpenChange={(o) => !o && setTemp(null)}>

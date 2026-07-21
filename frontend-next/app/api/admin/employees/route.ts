@@ -29,13 +29,14 @@ export async function POST(req: Request) {
   const admin = await guard(req, ["admin"]);
   if (admin instanceof NextResponse) return admin;
 
-  const b = await body<{ name?: string; email?: string; phone?: string; position?: string }>(req);
+  const b = await body<{ name?: string; email?: string; phone?: string; position?: string; password?: string }>(req);
   const errors: Record<string, string[]> = {};
   if (!b.name?.trim()) errors.name = ["Name is required."];
   if (!b.phone?.trim()) errors.phone = ["Phone is required."];
+  if (b.password && b.password.length < 8) errors.password = ["Password must be at least 8 characters."];
   if (Object.keys(errors).length) return validationError(errors);
 
-  const pw = tempPassword();
+  const pw = b.password?.trim() || tempPassword();
   const [employee] = await db
     .insert(users)
     .values({

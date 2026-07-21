@@ -4,18 +4,21 @@ import { eq } from "drizzle-orm";
 import { waitUntil } from "@vercel/functions";
 import { db } from "@/db";
 import { users, authTokens } from "@/db/schema";
-import { fail, json } from "@/app/api/_lib/http";
+import { body, fail, json, validationError } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
 import { audit, tempPassword } from "@/app/api/_lib/admin";
 import { sendEmail, sendSms } from "@/app/api/_lib/notify";
 
-/** POST /admin/employees/:id/reset-password — issue a new temp password, ending sessions. */
+/** POST /admin/employees/:id/reset-password — issue a new (temp or admin-chosen) password, ending sessions. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await guard(req, ["admin"]);
   if (admin instanceof NextResponse) return admin;
   const { id } = await params;
 
-  const pw = tempPassword();
+  const b = await body<{ password?: string }>(req);
+  if (b.password && b.password.length < 8) return validationError({ password: ["Password must be at least 8 characters."] });
+
+  const pw = b.password?.trim() || tempPassword();
   const [employee] = await db
     .update(users)
     .set({ password: bcrypt.hashSync(pw, 12), force_password_change: true, updated_at: new Date() })
