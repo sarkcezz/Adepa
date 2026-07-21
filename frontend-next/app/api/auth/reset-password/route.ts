@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { users, passwordResetTokens } from "@/db/schema";
+import { users, passwordResetTokens, authTokens } from "@/db/schema";
 import { body, fail, json, validationError } from "@/app/api/_lib/http";
 
 const RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -31,11 +31,15 @@ export async function POST(req: Request) {
     return fail("This reset link is invalid or has expired.", 422);
   }
 
-  await db
+  const [updated] = await db
     .update(users)
     .set({ password: bcrypt.hashSync(b.password!, 12), updated_at: new Date() })
-    .where(eq(users.email, email));
+    .where(eq(users.email, email))
+    .returning();
   await db.delete(passwordResetTokens).where(eq(passwordResetTokens.email, email));
+  // A reset is often a response to a compromised account — end every existing
+  // session so a session an attacker already holds doesn't survive it.
+  if (updated) await db.delete(authTokens).where(eq(authTokens.user_id, updated.id));
 
   return json({ message: "Password reset. You can sign in now." });
 }

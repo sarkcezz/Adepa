@@ -25,7 +25,7 @@ function getTransporter(): Transporter | null {
   return transporter;
 }
 
-export async function sendEmail(to: string, subject: string, body: string): Promise<void> {
+export async function sendEmail(to: string, subject: string, body: string, html?: string): Promise<void> {
   const t = getTransporter();
   if (!t) {
     console.log(`[email:noop] → ${to} :: ${subject}`);
@@ -37,6 +37,7 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
       to,
       subject,
       text: body,
+      ...(html ? { html } : {}),
     });
   } catch (e) {
     console.error(`[email:failed] → ${to} :: ${subject}`, e);

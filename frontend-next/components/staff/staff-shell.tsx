@@ -24,9 +24,10 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
     if (!mounted) return;
     if (!token) router.replace("/login?next=/staff");
     else if (user && user.role !== "employee" && user.role !== "admin") router.replace("/");
+    else if (user?.force_password_change) router.replace("/change-password");
   }, [mounted, token, user, router]);
 
-  if (!mounted || !token || (user?.role !== "employee" && user?.role !== "admin")) return null;
+  if (!mounted || !token || (user?.role !== "employee" && user?.role !== "admin") || user?.force_password_change) return null;
 
   const active = (href: string) => (href === "/staff" ? pathname === "/staff" : pathname.startsWith(href));
   const onReceipt = pathname.includes("/receipt");

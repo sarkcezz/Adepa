@@ -95,9 +95,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     if (!mounted) return;
     if (!token) router.replace("/login?next=/admin");
     else if (user && user.role !== "admin") router.replace("/");
+    else if (user?.force_password_change) router.replace("/change-password");
   }, [mounted, token, user, router]);
 
-  if (!mounted || !token || user?.role !== "admin") return null;
+  if (!mounted || !token || user?.role !== "admin" || user?.force_password_change) return null;
 
   return (
     <div className="min-h-svh bg-secondary/20">
