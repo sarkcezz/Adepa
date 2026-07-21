@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "The terms that apply when you order from Adepa Pork Hub.",
 };
 
-const UPDATED = "12 July 2026";
+const UPDATED = "21 July 2026";
 
 export default function TermsPage() {
   return (
@@ -74,7 +74,9 @@ export default function TermsPage() {
         <Section title="8. Account responsibilities">
           <p>
             You&apos;re responsible for keeping your password confidential and for all activity under your
-            account. Let us know immediately if you suspect unauthorised access.
+            account. Let us know immediately if you suspect unauthorised access. You may also sign in using
+            a Google account; doing so is subject to Google&apos;s own terms, and you&apos;re responsible for
+            keeping that Google account secure.
           </p>
         </Section>
 

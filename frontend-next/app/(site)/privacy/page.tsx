@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "How Adepa Pork Hub collects, uses, and protects your information.",
 };
 
-const UPDATED = "12 July 2026";
+const UPDATED = "21 July 2026";
 
 export default function PrivacyPage() {
   return (
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
 
         <Section title="2. Information we collect">
           <ul className="list-disc space-y-1.5 pl-5">
-            <li><strong>Account details</strong> — name, email, phone number, and password (stored as a salted hash, never in plain text).</li>
+            <li><strong>Account details</strong> — name, email, phone number, and password (stored as a salted hash, never in plain text). If you sign in with Google, we receive your name, email address, and whether Google has verified that email — we never receive or see your Google password.</li>
             <li><strong>Delivery addresses</strong> — recipient name, phone, area, district, and landmark for the addresses you save.</li>
             <li><strong>Order history</strong> — items purchased, amounts, delivery method, and status timeline.</li>
             <li><strong>Payment confirmation</strong> — we receive a payment reference and status from Paystack; we do not receive or store your card or mobile money PIN.</li>
@@ -49,6 +49,7 @@ export default function PrivacyPage() {
           <p>We share the minimum necessary information with:</p>
           <ul className="mt-2 list-disc space-y-1.5 pl-5">
             <li><strong>Paystack</strong> — to process card and mobile money payments.</li>
+            <li><strong>Google</strong> — if you choose to sign in with Google, we exchange an authorization code with Google to confirm your identity and retrieve your name and email.</li>
             <li><strong>Our hosting and database providers</strong> (Vercel, Neon) — to run the application and store data securely.</li>
             <li><strong>SMS/email providers</strong> — to deliver order and account notifications.</li>
           </ul>
