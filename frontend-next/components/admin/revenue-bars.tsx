@@ -1,5 +1,6 @@
 "use client";
 
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatGhs } from "@/lib/format";
 
 interface Row {
@@ -7,37 +8,62 @@ interface Row {
   revenue_kobo: number;
 }
 
-/** Lightweight SVG bar chart — no charting dependency. */
+/** Revenue trend line, backed by real analytics data. */
 export function RevenueBars({ data }: { data: Row[] }) {
   if (!data.length) {
-    return <p className="grid h-48 place-items-center text-sm text-muted-foreground">No revenue data yet.</p>;
+    return <p className="grid h-64 place-items-center text-sm text-muted-foreground">No revenue data yet.</p>;
   }
 
-  const max = Math.max(...data.map((d) => d.revenue_kobo), 1);
-  const recent = data.slice(-14); // last 14 points
+  const recent = data.slice(-14).map((d) => ({ label: d.label, ghs: d.revenue_kobo / 100 }));
 
   return (
-    <div>
-      <div className="flex h-48 items-end gap-1.5">
-        {recent.map((d, i) => {
-          const h = Math.max(2, (d.revenue_kobo / max) * 100);
-          return (
-            <div key={i} className="group relative flex flex-1 flex-col items-center justify-end">
-              <div
-                className="w-full rounded-t-md bg-primary/80 transition-colors hover:bg-primary"
-                style={{ height: `${h}%` }}
-              />
-              <div className="pointer-events-none absolute -top-9 z-10 hidden whitespace-nowrap rounded-lg bg-foreground px-2 py-1 text-[10px] font-medium text-background group-hover:block">
-                {formatGhs(d.revenue_kobo)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-        <span>{recent[0]?.label}</span>
-        <span>{recent[recent.length - 1]?.label}</span>
-      </div>
+    <div className="h-64 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={recent} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+          <defs>
+            <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+          <XAxis
+            dataKey="label"
+            stroke="var(--muted-foreground)"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            stroke="var(--muted-foreground)"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+            width={48}
+            tickFormatter={(v: number) => `₵${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`}
+          />
+          <Tooltip
+            cursor={{ stroke: "var(--primary)", strokeWidth: 1 }}
+            contentStyle={{
+              background: "var(--card)",
+              borderColor: "var(--border)",
+              borderRadius: "0.75rem",
+              fontSize: "0.8rem",
+            }}
+            labelStyle={{ color: "var(--muted-foreground)" }}
+            formatter={(value) => [formatGhs(Number(value) * 100), "Revenue"]}
+          />
+          <Area
+            type="monotone"
+            dataKey="ghs"
+            stroke="var(--primary)"
+            strokeWidth={2}
+            fill="url(#revenueFill)"
+            activeDot={{ r: 4 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
