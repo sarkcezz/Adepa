@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   description: "Phone, WhatsApp, email, and our Ejisu-Krapa location — get in touch with Adepa Pork Hub.",
 };
 
-const WHATSAPP = "233500000000";
-const PHONE = "+233 50 000 0000";
+const WHATSAPP = "233240425561";
+const PHONE = "+233 24 042 5561";
 
 export default function ContactPage() {
   return (

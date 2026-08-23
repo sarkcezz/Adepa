@@ -4,7 +4,7 @@ import { Logo } from "./logo";
 import { NewsletterSignup } from "./newsletter-signup";
 import { FacebookIcon, InstagramIcon, TikTokIcon, YoutubeIcon } from "./social-icons";
 
-const WHATSAPP = "233500000000";
+const WHATSAPP = "233240425561";
 
 const SOCIALS = [
   { icon: FacebookIcon, href: process.env.NEXT_PUBLIC_FACEBOOK_URL, label: "Facebook" },

@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 type Method = "HOME" | "PICKUP";
-const WHATSAPP = "233500000000";
+const WHATSAPP = "233240425561";
 
 export default function CheckoutPage() {
   const router = useRouter();
