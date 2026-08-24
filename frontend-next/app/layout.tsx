@@ -1,19 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Karla, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaRegister } from "@/components/pwa-register";
 import { Analytics } from "@/components/analytics";
 import "./globals.css";
 
-// Shared typography with symasgroup.com and symasfarms.com (Playfair Display
-// for headings, Inter for body) — see Symas group/symasgroup.md §13.
-const display = Playfair_Display({
+// Adepa's own "Farmhouse Warm" identity — Fraunces for headings, Karla for
+// body — a deliberate departure from the Playfair Display/Inter pairing
+// shared with symasgroup.com and symasfarms.com (Symas group/symasgroup.md §13).
+const display = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
-const body = Inter({
+const body = Karla({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#5C1F2E",
+  themeColor: "#7A342B",
 };
 
 export default function RootLayout({

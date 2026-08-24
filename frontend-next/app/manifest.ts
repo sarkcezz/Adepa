@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Premium Ghanaian pork — fresh cuts and ready-to-eat platters, delivered.",
     start_url: "/",
     display: "standalone",
-    background_color: "#FAF6F3",
-    theme_color: "#5C1F2E",
+    background_color: "#F2E6D6",
+    theme_color: "#7A342B",
     orientation: "portrait",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },

@@ -48,99 +48,100 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Adepa Pork Hub brand — per the Symas Group Master Brand Blueprint
-   (Symas group/symasgroup.md §13): Burgundy / Cream / Dark Grey.
-   Shares Symas Group's / Symas Farms' typography and design language;
-   the hue family (not the exact values) is what's brand-specific here.
+   Adepa Pork Hub brand — "Farmhouse Warm".
+   A deliberate departure from the Symas Group Master Brand Blueprint
+   (Symas group/symasgroup.md §13, Burgundy/Cream/Dark Grey, shared with
+   symasgroup.com and symasfarms.com): Adepa now runs its own terracotta/
+   olive identity rather than the shared burgundy family.
    All OKLCH; chroma eased toward the extremes.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
   --radius: 0.85rem;
 
-  --background: oklch(0.985 0.006 60);     /* warm cream */
-  --foreground: oklch(0.27 0.012 40);      /* dark grey ink */
+  --background: oklch(0.93 0.025 75);      /* warm oat/cream */
+  --foreground: oklch(0.26 0.03 50);       /* warm dark brown ink */
 
-  --card: oklch(1 0.004 60);
+  --card: oklch(0.985 0.012 80);
   --card-foreground: var(--foreground);
-  --popover: oklch(1 0.004 60);
+  --popover: oklch(0.985 0.012 80);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.34 0.11 17);           /* burgundy */
-  --primary-foreground: oklch(0.98 0.008 60);
+  --primary: oklch(0.42 0.1 30);            /* deep terracotta */
+  --primary-foreground: oklch(0.98 0.01 75);
 
-  --secondary: oklch(0.95 0.018 25);        /* pale burgundy wash */
-  --secondary-foreground: oklch(0.32 0.09 17);
+  --secondary: oklch(0.9 0.035 42);         /* pale terracotta wash */
+  --secondary-foreground: oklch(0.4 0.1 35);
 
-  --muted: oklch(0.955 0.006 50);
-  --muted-foreground: oklch(0.46 0.012 40); /* dark grey */
+  --muted: oklch(0.955 0.02 75);
+  --muted-foreground: oklch(0.5 0.04 55);   /* warm grey-brown */
 
-  --accent: oklch(0.52 0.15 26);            /* brighter brick/burgundy — CTAs */
-  --accent-foreground: oklch(0.98 0.008 60);
+  --accent: oklch(0.58 0.14 40);            /* bright terracotta — CTAs */
+  --accent-foreground: oklch(0.98 0.01 75);
 
   --destructive: oklch(0.56 0.20 34);
 
-  --border: oklch(0.90 0.008 50);
-  --input: oklch(0.90 0.008 50);
-  --ring: oklch(0.34 0.11 17);
+  --border: oklch(0.86 0.02 70);
+  --input: oklch(0.86 0.02 70);
+  --ring: oklch(0.42 0.1 30);
 
-  /* Brand-leaning categorical chart palette: burgundy, dark grey, brick, dusty rose, taupe */
-  --chart-1: oklch(0.34 0.11 17);
-  --chart-2: oklch(0.46 0.012 40);
-  --chart-3: oklch(0.52 0.15 26);
-  --chart-4: oklch(0.64 0.09 15);
-  --chart-5: oklch(0.60 0.03 50);
+  /* Brand-leaning categorical chart palette: terracotta, bright terracotta, olive, warm grey, tan */
+  --chart-1: oklch(0.42 0.1 30);
+  --chart-2: oklch(0.58 0.14 40);
+  --chart-3: oklch(0.62 0.1 120);
+  --chart-4: oklch(0.5 0.04 55);
+  --chart-5: oklch(0.7 0.06 70);
 
-  --sidebar: oklch(0.99 0.005 60);
+  --sidebar: oklch(0.985 0.012 80);
   --sidebar-foreground: var(--foreground);
-  --sidebar-primary: oklch(0.34 0.11 17);
-  --sidebar-primary-foreground: oklch(0.98 0.008 60);
-  --sidebar-accent: oklch(0.95 0.018 25);
-  --sidebar-accent-foreground: oklch(0.32 0.09 17);
-  --sidebar-border: oklch(0.90 0.008 50);
-  --sidebar-ring: oklch(0.34 0.11 17);
+  --sidebar-primary: oklch(0.42 0.1 30);
+  --sidebar-primary-foreground: oklch(0.98 0.01 75);
+  --sidebar-accent: oklch(0.9 0.035 42);
+  --sidebar-accent-foreground: oklch(0.4 0.1 35);
+  --sidebar-border: oklch(0.86 0.02 70);
+  --sidebar-ring: oklch(0.42 0.1 30);
 }
 
 .dark {
-  --background: oklch(0.20 0.010 40);       /* deep dark grey */
-  --foreground: oklch(0.96 0.008 60);
+  --background: oklch(0.19 0.015 45);       /* dark warm charcoal-brown */
+  --foreground: oklch(0.95 0.015 75);
 
-  --card: oklch(0.24 0.012 40);
-  --card-foreground: oklch(0.96 0.008 60);
-  --popover: oklch(0.24 0.012 40);
-  --popover-foreground: oklch(0.96 0.008 60);
+  --card: oklch(0.23 0.018 45);
+  --card-foreground: oklch(0.95 0.015 75);
+  --popover: oklch(0.23 0.018 45);
+  --popover-foreground: oklch(0.95 0.015 75);
 
-  --primary: oklch(0.56 0.16 20);           /* brighter burgundy on dark */
-  --primary-foreground: oklch(0.98 0.008 60);
+  --primary: oklch(0.62 0.13 38);           /* brighter terracotta on dark */
+  --primary-foreground: oklch(0.16 0.02 40);
 
-  --secondary: oklch(0.30 0.02 30);
-  --secondary-foreground: oklch(0.96 0.008 60);
+  --secondary: oklch(0.3 0.03 40);
+  --secondary-foreground: oklch(0.92 0.02 70);
 
-  --muted: oklch(0.30 0.012 40);
-  --muted-foreground: oklch(0.72 0.012 50);
+  --muted: oklch(0.28 0.02 45);
+  --muted-foreground: oklch(0.72 0.02 60);
 
-  --accent: oklch(0.62 0.17 27);
-  --accent-foreground: oklch(0.20 0.03 30);
+  --accent: oklch(0.66 0.15 42);
+  --accent-foreground: oklch(0.16 0.02 40);
 
   --destructive: oklch(0.68 0.19 30);
 
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.56 0.16 20);
+  --ring: oklch(0.62 0.13 38);
 
-  --chart-1: oklch(0.56 0.16 20);
-  --chart-2: oklch(0.72 0.012 50);
-  --chart-3: oklch(0.62 0.17 27);
-  --chart-4: oklch(0.70 0.09 15);
-  --chart-5: oklch(0.68 0.03 50);
+  --chart-1: oklch(0.62 0.13 38);
+  --chart-2: oklch(0.66 0.15 42);
+  --chart-3: oklch(0.68 0.11 120);
+  --chart-4: oklch(0.72 0.02 60);
+  --chart-5: oklch(0.75 0.05 70);
 
-  --sidebar: oklch(0.22 0.012 40);
-  --sidebar-foreground: oklch(0.96 0.008 60);
-  --sidebar-primary: oklch(0.56 0.16 20);
-  --sidebar-primary-foreground: oklch(0.98 0.008 60);
-  --sidebar-accent: oklch(0.30 0.02 30);
-  --sidebar-accent-foreground: oklch(0.96 0.008 60);
+  --sidebar: oklch(0.23 0.018 45);
+  --sidebar-foreground: oklch(0.95 0.015 75);
+  --sidebar-primary: oklch(0.62 0.13 38);
+  --sidebar-primary-foreground: oklch(0.16 0.02 40);
+  --sidebar-accent: oklch(0.3 0.03 40);
+  --sidebar-accent-foreground: oklch(0.92 0.02 70);
   --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.56 0.16 20);
+  --sidebar-ring: oklch(0.62 0.13 38);
 }
 
 @layer base {
