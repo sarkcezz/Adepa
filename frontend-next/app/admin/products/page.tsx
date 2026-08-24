@@ -291,7 +291,7 @@ function ImageUpload({ value, onChange }: { value: string; onChange: (url: strin
 
   async function handle(file: File) {
     if (!file.type.startsWith("image/")) return toast.error("Choose an image file.");
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB.");
+    if (file.size > 10 * 1024 * 1024) return toast.error("Max 10MB.");
     setUploading(true);
     try {
       const fd = new FormData();
@@ -330,7 +330,7 @@ function ImageUpload({ value, onChange }: { value: string; onChange: (url: strin
         >
           {uploading ? <Loader2 className="size-6 animate-spin text-primary" /> : <Upload className="size-6 text-primary" />}
           <span className="font-medium">{uploading ? "Uploading…" : "Click to upload"}</span>
-          <span className="text-xs text-muted-foreground">JPG, PNG, WEBP · max 5MB</span>
+          <span className="text-xs text-muted-foreground">JPG, PNG, WEBP · max 10MB</span>
         </button>
       )}
       <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) handle(f); e.target.value = ""; }} />
@@ -346,7 +346,7 @@ function GalleryUpload({ value, onChange }: { value: string[]; onChange: (urls: 
 
   async function handle(file: File) {
     if (!file.type.startsWith("image/")) return toast.error("Choose an image file.");
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB.");
+    if (file.size > 10 * 1024 * 1024) return toast.error("Max 10MB.");
     setUploading(true);
     try {
       const fd = new FormData();

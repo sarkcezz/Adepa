@@ -3,7 +3,7 @@ import { put } from "@vercel/blob";
 import { fail, json } from "@/app/api/_lib/http";
 import { guard } from "@/app/api/_lib/auth";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 /** POST /admin/upload/image — stores a product/event/announcement image on Vercel Blob. */
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const file = form?.get("image");
   if (!file || !(file instanceof File)) return fail("No image provided.", 422);
   if (!ALLOWED.has(file.type)) return fail("Choose a JPG, PNG, WEBP, or GIF image.", 422);
-  if (file.size > MAX_BYTES) return fail("Image must be 5MB or smaller.", 422);
+  if (file.size > MAX_BYTES) return fail("Image must be 10MB or smaller.", 422);
 
   const ext = file.type.split("/")[1];
   const key = `products/${crypto.randomUUID()}.${ext}`;
