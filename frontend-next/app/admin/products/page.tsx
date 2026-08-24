@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Plus, Pencil, Power, Upload, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { upload } from "@vercel/blob/client";
 import { api, API_BASE } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { formatGhs, formatWeight, PRODUCT_LINE_LABEL, PRODUCT_CATEGORIES, CATEGORY_LABEL } from "@/lib/format";
@@ -294,16 +295,14 @@ function ImageUpload({ value, onChange }: { value: string; onChange: (url: strin
     if (file.size > 10 * 1024 * 1024) return toast.error("Max 10MB.");
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("image", file);
-      const res = await fetch(`${API_BASE}/admin/upload/image`, {
-        method: "POST",
+      const ext = file.type.split("/")[1] || "jpg";
+      const blob = await upload(`products/${crypto.randomUUID()}.${ext}`, file, {
+        access: "public",
+        handleUploadUrl: `${API_BASE}/admin/upload/image`,
+        contentType: file.type,
         headers: { Authorization: `Bearer ${token}` },
-        body: fd,
       });
-      if (!res.ok) throw new Error();
-      const data = (await res.json()) as { url: string };
-      onChange(data.url);
+      onChange(blob.url);
       toast.success("Image uploaded.");
     } catch {
       toast.error("Upload failed.");
@@ -349,16 +348,14 @@ function GalleryUpload({ value, onChange }: { value: string[]; onChange: (urls: 
     if (file.size > 10 * 1024 * 1024) return toast.error("Max 10MB.");
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("image", file);
-      const res = await fetch(`${API_BASE}/admin/upload/image`, {
-        method: "POST",
+      const ext = file.type.split("/")[1] || "jpg";
+      const blob = await upload(`products/${crypto.randomUUID()}.${ext}`, file, {
+        access: "public",
+        handleUploadUrl: `${API_BASE}/admin/upload/image`,
+        contentType: file.type,
         headers: { Authorization: `Bearer ${token}` },
-        body: fd,
       });
-      if (!res.ok) throw new Error();
-      const data = (await res.json()) as { url: string };
-      onChange([...value, data.url]);
+      onChange([...value, blob.url]);
     } catch {
       toast.error("Upload failed.");
     } finally {
