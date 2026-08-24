@@ -32,7 +32,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
   {
     title: "Payments",
     items: [
-      { q: "What payment methods do you accept?", a: "Mobile Money, Visa, Mastercard, bank transfer, and cash on delivery for eligible orders." },
+      { q: "What payment methods do you accept?", a: "Mobile Money or card (Visa, Mastercard) for delivery orders, paid securely at checkout. Stand pickup orders can be paid with cash on collection." },
       { q: "Is my payment secure?", a: "Yes — online payments are processed through Paystack, a licensed payment processor. We never see or store your card details." },
       { q: "Can I use gift cards or reward points?", a: "Yes, both can be applied at checkout and will reduce your total before payment." },
     ],
