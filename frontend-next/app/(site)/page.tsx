@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Truck, Leaf, ChefHat, ShieldCheck } from "lucide-react";
 import { publicApi } from "@/lib/api";
 import type { Paginated, Product } from "@/lib/types";
@@ -74,9 +75,14 @@ export default async function HomePage() {
           <div className="relative">
             <div className="absolute -inset-4 rotate-2 rounded-[2.5rem] bg-accent/15 blur-2xl" />
             <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-white/15 bg-white/5">
-              <div className="grid h-full place-items-center">
-                <Leaf className="size-32 text-accent/50" strokeWidth={1} />
-              </div>
+              <Image
+                src="/images/marinated.jpg"
+                alt="Marinated pork skewers with peppers and onions on the grill"
+                fill
+                sizes="(min-width: 1024px) 40vw, 90vw"
+                className="object-cover"
+                priority
+              />
             </div>
           </div>
         </div>
