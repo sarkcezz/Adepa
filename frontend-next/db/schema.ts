@@ -224,7 +224,7 @@ export const orders = pgTable(
     payment_method: paymentMethodEnum("payment_method").notNull().default("MOMO"),
     payment_reference: varchar("payment_reference", { length: 255 }),
     payment_status: paymentStatusEnum("payment_status").notNull().default("PENDING"),
-    paystack_reference: varchar("paystack_reference", { length: 255 }),
+    paystack_reference: varchar("paystack_reference", { length: 255 }).unique(),
     source: orderSourceEnum("source").notNull().default("ONLINE"),
     campaign_id: uuid("campaign_id").references(() => campaigns.id, { onDelete: "set null" }),
     gift_card_id: uuid("gift_card_id"),

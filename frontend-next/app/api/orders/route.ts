@@ -17,7 +17,7 @@ import { calculateDeliveryFeeKobo } from "@/app/api/_lib/shipping";
 import { verifyTransaction } from "@/app/api/_lib/paystack";
 import { notifyUser } from "@/app/api/_lib/notifications";
 import { formatGhs } from "@/lib/format";
-import { loyaltyBalance, recordPoints, pointsForSpend, redeemValueKobo, KOBO_PER_POINT_REDEEMED } from "@/app/api/_lib/loyalty";
+import { loyaltyBalance, recordPoints, redeemPointsIfAvailable, pointsForSpend, redeemValueKobo, KOBO_PER_POINT_REDEEMED } from "@/app/api/_lib/loyalty";
 import { awardReferralBonusIfEligible } from "@/app/api/_lib/referral";
 import { checkGiftCard } from "@/app/api/_lib/gift-cards";
 
@@ -41,6 +41,22 @@ export async function POST(req: Request) {
     redeem_points?: number;
     gift_card_code?: string;
   }>(req);
+
+  // Idempotency: a completed Paystack payment can reach this route twice (the
+  // checkout page deliberately retries createOrder() with the SAME reference
+  // if the first response is lost, e.g. a dropped connection right after the
+  // server already committed). Without this, a single charge could mint two
+  // paid orders. A reference uniquely identifies one checkout attempt, so if
+  // an order already carries it, that IS the answer — return it as-is rather
+  // than creating a duplicate.
+  if (b.paystack_reference) {
+    const [existing] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.paystack_reference, b.paystack_reference))
+      .limit(1);
+    if (existing) return json(existing, 200);
+  }
 
   const user = await resolveCheckoutUser(req, {
     name: b.guest_name,
@@ -165,32 +181,58 @@ export async function POST(req: Request) {
     paid = true;
   }
 
-  const orderNumber = await nextOrderNumber();
-
-  const [order] = await db
-    .insert(orders)
-    .values({
-      order_number: orderNumber,
-      customer_id: user.id,
-      status: "PENDING",
-      delivery_method: b.delivery_method,
-      address_id: addressId,
-      pickup_location_name: b.delivery_method === "PICKUP" ? b.pickup_location_name ?? null : null,
-      subtotal_kobo: subtotal,
-      delivery_fee_kobo: deliveryFee,
-      discount_kobo: discount,
-      loyalty_points_redeemed: loyaltyPoints,
-      loyalty_kobo: loyaltyKobo,
-      gift_card_id: giftCardId,
-      gift_card_kobo: giftCardKobo,
-      total_kobo: total,
-      payment_method: b.payment_method ?? "MOMO",
-      paystack_reference: b.paystack_reference ?? null,
-      payment_status: paid ? "PAID" : "PENDING",
-      source: "ONLINE",
-      campaign_id: campaignId,
-    })
-    .returning();
+  // order_number is derived from MAX(existing)+1, which isn't atomic — two
+  // checkouts landing in the same instant can compute the same next number.
+  // The column's unique constraint turns that into a clean, retryable insert
+  // failure instead of silently colliding, so retry with a freshly computed
+  // number rather than surfacing a spurious failure to a customer who paid fine.
+  let order;
+  for (let attempt = 0; ; attempt++) {
+    const orderNumber = await nextOrderNumber();
+    try {
+      [order] = await db
+        .insert(orders)
+        .values({
+          order_number: orderNumber,
+          customer_id: user.id,
+          status: "PENDING",
+          delivery_method: b.delivery_method,
+          address_id: addressId,
+          pickup_location_name: b.delivery_method === "PICKUP" ? b.pickup_location_name ?? null : null,
+          subtotal_kobo: subtotal,
+          delivery_fee_kobo: deliveryFee,
+          discount_kobo: discount,
+          loyalty_points_redeemed: loyaltyPoints,
+          loyalty_kobo: loyaltyKobo,
+          gift_card_id: giftCardId,
+          gift_card_kobo: giftCardKobo,
+          total_kobo: total,
+          payment_method: b.payment_method ?? "MOMO",
+          paystack_reference: b.paystack_reference ?? null,
+          payment_status: paid ? "PAID" : "PENDING",
+          source: "ONLINE",
+          campaign_id: campaignId,
+        })
+        .returning();
+      break;
+    } catch (e) {
+      const code = e && typeof e === "object" && "code" in e ? (e as { code?: unknown }).code : undefined;
+      if (code !== "23505") throw e;
+      // Either order_number collided (retry with a fresh one below) or a
+      // concurrent request with the same paystack_reference won the race —
+      // in that case its row now exists, so return it instead of retrying
+      // into the same conflict.
+      if (b.paystack_reference) {
+        const [wonByOther] = await db
+          .select()
+          .from(orders)
+          .where(eq(orders.paystack_reference, b.paystack_reference))
+          .limit(1);
+        if (wonByOther) return json(wonByOther, 200);
+      }
+      if (attempt >= 2) throw e;
+    }
+  }
 
   await db.insert(orderItems).values(lines.map((l) => ({ ...l, order_id: order.id })));
   await db.insert(orderStatusHistory).values({
@@ -201,10 +243,15 @@ export async function POST(req: Request) {
   });
 
   if (campaignId) {
+    // Conditional, not unconditional: validateCampaign()'s limit check ran
+    // before this request's own processing time, so concurrent checkouts can
+    // all pass it before any of them increments. The WHERE clause makes the
+    // increment itself atomic, capping real drift past max_usage to at most
+    // one order already in flight when the limit was reached.
     await db
       .update(campaigns)
       .set({ usage_count: sql`${campaigns.usage_count} + 1` })
-      .where(eq(campaigns.id, campaignId));
+      .where(and(eq(campaigns.id, campaignId), sql`(${campaigns.max_usage} IS NULL OR ${campaigns.usage_count} < ${campaigns.max_usage})`));
     await db.insert(campaignUsages).values({
       campaign_id: campaignId,
       order_id: order.id,
@@ -214,7 +261,7 @@ export async function POST(req: Request) {
   }
 
   if (loyaltyPoints > 0) {
-    await recordPoints(user.id, -loyaltyPoints, "REDEEMED", order.id, `Redeemed on order ${order.order_number}`);
+    await redeemPointsIfAvailable(user.id, loyaltyPoints, order.id, `Redeemed on order ${order.order_number}`);
   }
   if (giftCardId && giftCardKobo > 0) {
     await db

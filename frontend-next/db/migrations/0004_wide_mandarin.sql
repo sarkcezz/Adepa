@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD CONSTRAINT "orders_paystack_reference_unique" UNIQUE("paystack_reference");

@@ -30,6 +30,30 @@ export async function recordPoints(
   await db.insert(loyaltyLedger).values({ user_id: userId, points, reason, order_id: orderId ?? null, note: note ?? null });
 }
 
+/**
+ * Redeems points only if the ledger's balance still covers it at the moment
+ * of the write. The caller (order creation) reads the balance well before
+ * this runs, which leaves a window for a second concurrent order from the
+ * same customer to redeem the same points twice — this re-checks the sum
+ * inside the insert itself so only one of two racing redemptions can land.
+ * Returns whether the redemption was actually recorded.
+ */
+export async function redeemPointsIfAvailable(
+  userId: string,
+  points: number,
+  orderId: string,
+  note: string,
+): Promise<boolean> {
+  if (points <= 0) return false;
+  const result = await db.execute(sql`
+    INSERT INTO loyalty_ledger (user_id, points, reason, order_id, note)
+    SELECT ${userId}, ${-points}, 'REDEEMED', ${orderId}, ${note}
+    WHERE (SELECT COALESCE(SUM(points), 0) FROM loyalty_ledger WHERE user_id = ${userId}) >= ${points}
+    RETURNING id
+  `);
+  return result.rows.length > 0;
+}
+
 const BIRTHDAY_BONUS_POINTS = 50;
 
 /**
