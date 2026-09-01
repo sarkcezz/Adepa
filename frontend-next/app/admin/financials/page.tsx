@@ -144,18 +144,48 @@ export default function FinancialModelPage() {
 
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total revenue" value={formatGhsAmount(kpis.total_revenue)} sub={`Over ${horizon} months`} icon={DollarSign} />
-        <KpiCard label="Gross profit" value={formatGhsAmount(kpis.gross_profit)} icon={TrendingUp} />
-        <KpiCard label="Net profit" value={formatGhsAmount(kpis.net_profit)} icon={kpis.net_profit >= 0 ? TrendingUp : TrendingDown} bad={kpis.net_profit < 0} />
-        <KpiCard label="Gross margin" value={`${kpis.gross_margin_pct.toFixed(1)}%`} icon={Percent} />
-        <KpiCard label="Net margin" value={`${kpis.net_margin_pct.toFixed(1)}%`} icon={Percent} bad={kpis.net_margin_pct < 0} />
-        <KpiCard label="Break-even sales" value={formatGhsAmount(kpis.break_even_revenue_per_month)} sub="Per month" icon={Target} />
+        <KpiCard
+          label="Total revenue"
+          value={formatGhsAmount(kpis.total_revenue)}
+          sub={`Over ${horizon} months`}
+          icon={DollarSign}
+          trend={months.map((m) => m.total_revenue)}
+        />
+        <KpiCard
+          label="Gross profit"
+          value={formatGhsAmount(kpis.gross_profit)}
+          icon={TrendingUp}
+          trend={months.map((m) => m.gross_profit)}
+        />
+        <KpiCard
+          label="Net profit"
+          value={formatGhsAmount(kpis.net_profit)}
+          icon={kpis.net_profit >= 0 ? TrendingUp : TrendingDown}
+          bad={kpis.net_profit < 0}
+          highlight={kpis.net_profit >= 0}
+          trend={months.map((m) => m.net_profit)}
+        />
+        <KpiCard
+          label="Net margin"
+          value={`${kpis.net_margin_pct.toFixed(1)}%`}
+          icon={Percent}
+          bad={kpis.net_margin_pct < 0}
+          trend={months.map((m) => (m.total_revenue > 0 ? (m.net_profit / m.total_revenue) * 100 : 0))}
+        />
+        <KpiCard
+          label="Gross margin"
+          value={`${kpis.gross_margin_pct.toFixed(1)}%`}
+          icon={Percent}
+          trend={months.map((m) => (m.total_revenue > 0 ? (m.gross_profit / m.total_revenue) * 100 : 0))}
+        />
+        <KpiCard label="Break-even sales" value={formatGhsAmount(kpis.break_even_revenue_per_month)} sub="Per month, to cover fixed costs" icon={Target} />
         <KpiCard
           label="Cash runway"
           value={kpis.cash_runway_months ? `${kpis.cash_runway_months} mo` : "No limit"}
-          sub={kpis.cash_runway_months ? "Until cash goes negative" : `Positive through month ${horizon}`}
+          sub={kpis.cash_runway_months ? "Until cash goes negative" : "Cash never goes negative"}
           icon={Clock}
           bad={!!kpis.cash_runway_months}
+          good={!kpis.cash_runway_months}
         />
         <KpiCard
           label="CAPEX payback"
