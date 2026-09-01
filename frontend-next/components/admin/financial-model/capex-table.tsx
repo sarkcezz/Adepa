@@ -5,6 +5,18 @@ import { Button } from "@/components/ui/button";
 
 let nextId = 1000;
 
+const CATEGORY_SUGGESTIONS = [
+  "Cold storage",
+  "Packaging",
+  "Machinery",
+  "Utilities",
+  "Vehicles",
+  "Installation",
+  "Furniture & fixtures",
+  "IT & software",
+  "Other",
+];
+
 export function CapexTable({ capex, onChange }: { capex: CapexAsset[]; onChange: (capex: CapexAsset[]) => void }) {
   function update<K extends keyof CapexAsset>(id: string, field: K, value: CapexAsset[K]) {
     onChange(capex.map((a) => (a.id === id ? { ...a, [field]: value } : a)));
@@ -34,6 +46,9 @@ export function CapexTable({ capex, onChange }: { capex: CapexAsset[]; onChange:
 
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-6">
+      <datalist id="capex-category-suggestions">
+        {CATEGORY_SUGGESTIONS.map((c) => <option key={c} value={c} />)}
+      </datalist>
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="font-[family-name:var(--font-display)] text-lg font-bold">Startup CAPEX</h2>
@@ -64,7 +79,7 @@ export function CapexTable({ capex, onChange }: { capex: CapexAsset[]; onChange:
                   <Input className="h-8 text-sm" value={a.asset_name} onChange={(e) => update(a.id, "asset_name", e.target.value)} />
                 </td>
                 <td className="py-1.5 pr-2">
-                  <Input className="h-8 text-sm" value={a.asset_category} onChange={(e) => update(a.id, "asset_category", e.target.value)} />
+                  <Input className="h-8 text-sm" list="capex-category-suggestions" value={a.asset_category} onChange={(e) => update(a.id, "asset_category", e.target.value)} />
                 </td>
                 <td className="py-1.5 pr-2">
                   <Input type="number" className="h-8 text-right text-sm tabular-nums" value={a.purchase_cost} onChange={(e) => update(a.id, "purchase_cost", Number(e.target.value) || 0)} />
