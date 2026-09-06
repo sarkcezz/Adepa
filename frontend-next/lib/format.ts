@@ -43,6 +43,8 @@ export const PRODUCT_CATEGORIES = [
   "BBQ_PACK",
   "RESTAURANT_PACK",
   "BULK_ORDER",
+  "FRENCHED_RACK",
+  "HOCK",
 ] as const;
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
@@ -62,5 +64,7 @@ export const CATEGORY_LABEL: Record<ProductCategory, string> = {
   FAMILY_PACK: "Family Pack",
   BBQ_PACK: "BBQ Pack",
   RESTAURANT_PACK: "Restaurant Pack",
+  FRENCHED_RACK: "Frenched Rack",
+  HOCK: "Hock",
   BULK_ORDER: "Bulk Order",
 };

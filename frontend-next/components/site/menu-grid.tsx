@@ -16,9 +16,10 @@ const LINES: { value: ProductLine | "ALL"; label: string }[] = [
 
 const SIZES: { value: string; label: string; test: (g: number) => boolean }[] = [
   { value: "ALL", label: "Any size", test: () => true },
-  { value: "small", label: "≤ 500g", test: (g) => g <= 500 },
-  { value: "medium", label: "500g–2kg", test: (g) => g > 500 && g <= 2000 },
-  { value: "large", label: "> 2kg", test: (g) => g > 2000 },
+  { value: "small", label: "≤ 1kg", test: (g) => g <= 1000 },
+  { value: "2kg", label: "2kg", test: (g) => g > 1000 && g <= 2000 },
+  { value: "5kg", label: "5kg", test: (g) => g > 2000 && g <= 5000 },
+  { value: "10kg", label: "10kg", test: (g) => g > 5000 },
 ];
 
 export function MenuGrid({
