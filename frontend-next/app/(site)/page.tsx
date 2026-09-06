@@ -33,8 +33,8 @@ export default async function HomePage() {
               Premium Ghanaian pork
             </span>
             <h1 className="mt-5 font-[family-name:var(--font-display)] text-5xl font-extrabold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
-              Fresh from the farm.{" "}
-              <span className="rounded-lg bg-accent px-2 text-accent-foreground">Fire-ready</span> for your table.
+              Farm fresh.{" "}
+              <span className="rounded-lg bg-accent px-2 text-accent-foreground">Fire ready.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-primary-foreground/90">
               Ethically raised, butcher-clean cuts and ready-to-eat platters,
