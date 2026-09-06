@@ -18,7 +18,7 @@ export function ProductGallery({ name, images }: { name: string; images: string[
             fill
             priority
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
+            className="object-contain"
           />
         ) : (
           <div className="grid h-full place-items-center">
