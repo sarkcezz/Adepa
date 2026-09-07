@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, XCircle, Users, Check } from "lucide-react";
+import { Plus, Pencil, XCircle, Users } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ImageUpload } from "@/components/admin/image-upload";
+import { RegistrantsTable } from "@/components/admin/registrants-table";
 
 type Draft = {
   id?: string; name: string; event_date: string; event_time: string;
@@ -78,14 +79,6 @@ export default function AdminEventsPage() {
     api<{ data: EventRegistration[] }>(`/admin/events/${e.id}/registrations`, { token: token! })
       .then((r) => setRegs(r.data))
       .catch(() => setRegs([]));
-  }
-
-  async function checkIn(reg: EventRegistration) {
-    if (!regsFor) return;
-    try {
-      await api(`/admin/events/${regsFor.id}/registrations/${reg.id}/check-in`, { method: "POST", token: token! });
-      setRegs((prev) => prev?.map((r) => (r.id === reg.id ? { ...r, checked_in: true, checked_in_at: new Date().toISOString() } : r)) ?? null);
-    } catch { toast.error("Could not check in."); }
   }
 
   const isFree = !draft.flat_rate_ghs || Number(draft.flat_rate_ghs) === 0;
@@ -191,43 +184,17 @@ export default function AdminEventsPage() {
       </Sheet>
 
       <Sheet open={!!regsFor} onOpenChange={(o) => !o && setRegsFor(null)}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-lg">
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-3xl">
           <SheetTitle className="sr-only">Registrants — {regsFor?.name}</SheetTitle>
           <div className="border-b border-border/60 px-6 py-4">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">Registrants</h2>
             <p className="text-sm text-muted-foreground">{regsFor?.name}</p>
           </div>
-          <div className="divide-y divide-border/60">
-            {regs === null ? (
-              <div className="space-y-2 p-6">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-            ) : regs.length === 0 ? (
-              <p className="p-6 text-center text-sm text-muted-foreground">No registrants yet.</p>
-            ) : (
-              regs.map((r) => (
-                <div key={r.id} className="flex items-center justify-between gap-3 px-6 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">
-                      {r.customer_name}
-                      {r.companions?.length > 0 && <span className="font-normal text-muted-foreground"> +{r.companions.length}</span>}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">{r.customer_phone}{r.customer_email ? ` · ${r.customer_email}` : ""}</p>
-                    {r.companions?.length > 0 && (
-                      <p className="truncate text-xs text-muted-foreground">With: {r.companions.join(", ")}</p>
-                    )}
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.payment_status === "PAID" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{r.payment_status}</span>
-                      <span className="font-mono text-[10px] text-muted-foreground">{r.management_code}</span>
-                    </div>
-                  </div>
-                  {r.checked_in ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary"><Check className="size-3.5" /> Checked in</span>
-                  ) : (
-                    <Button size="sm" className="shrink-0 rounded-full" onClick={() => checkIn(r)}>Check in</Button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+          {regs === null ? (
+            <div className="space-y-2 p-6">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+          ) : (
+            regsFor && <RegistrantsTable eventId={regsFor.id} eventName={regsFor.name} regs={regs} onChange={setRegs} />
+          )}
         </SheetContent>
       </Sheet>
     </div>
