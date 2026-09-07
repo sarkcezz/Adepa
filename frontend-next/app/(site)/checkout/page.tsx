@@ -3,13 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
-import { Truck, Store, Tag, CreditCard, Check, AlertTriangle, MessageCircle, Gift } from "lucide-react";
+import { Truck, Store, Tag, Banknote, Check, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { useCart, cartSubtotal, useHasMounted } from "@/lib/cart-store";
-import { openPaystack } from "@/lib/paystack";
 import { formatGhs } from "@/lib/format";
 import type { Address, StandAnnouncement } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -18,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 type Method = "HOME" | "PICKUP";
-const WHATSAPP = "233240425561";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -41,7 +38,6 @@ export default function CheckoutPage() {
   const [loyalty, setLoyalty] = useState<{ balance: number; redeemable_kobo: number } | null>(null);
   const [useLoyalty, setUseLoyalty] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [limbo, setLimbo] = useState<{ reference: string; retrying: boolean } | null>(null);
   const [deliveryFeeKobo, setDeliveryFeeKobo] = useState(1500);
   const orderPlaced = useRef(false);
 
@@ -50,8 +46,8 @@ export default function CheckoutPage() {
   // race the redirect to /checkout/success and bounce back to /menu instead.
   useEffect(() => {
     if (!mounted || orderPlaced.current) return;
-    if (items.length === 0 && !limbo) router.replace("/menu");
-  }, [mounted, items.length, limbo, router]);
+    if (items.length === 0) router.replace("/menu");
+  }, [mounted, items.length, router]);
 
   // Load addresses + active stands.
   useEffect(() => {
@@ -136,12 +132,11 @@ export default function CheckoutPage() {
     }
   }
 
-  async function createOrder(paystackRef?: string) {
+  async function createOrder() {
     const payload: Record<string, unknown> = {
       items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
       delivery_method: method,
-      payment_method: method === "PICKUP" ? "CASH" : "MOMO",
-      paystack_reference: paystackRef,
+      payment_method: "CASH",
       promo_code: promoCode || undefined,
       redeem_points: useLoyalty && redeemablePoints > 0 ? redeemablePoints : undefined,
       gift_card_code: giftCard ? giftCode.trim() : undefined,
@@ -164,7 +159,6 @@ export default function CheckoutPage() {
     });
     orderPlaced.current = true;
     clear();
-    setLimbo(null);
     router.push(`/checkout/success?order=${order.order_number}&id=${order.id}`);
   }
 
@@ -181,34 +175,7 @@ export default function CheckoutPage() {
     if (!validateGuestFields()) return;
     setLoading(true);
     try {
-      if (method === "PICKUP" || total === 0) {
-        await createOrder();
-        return;
-      }
-      const reference = `APH-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase();
-      const email = user?.email || guest.email || `${user?.phone || guest.phone}@adepaporkhub.shop`;
-      openPaystack({
-        email,
-        amountKobo: total,
-        reference,
-        metadata: { customer_id: user?.id },
-        onSuccess: async (ref) => {
-          try {
-            await createOrder(ref);
-          } catch {
-            try {
-              await new Promise((r) => setTimeout(r, 1500));
-              await createOrder(ref);
-            } catch {
-              setLimbo({ reference: ref, retrying: false });
-            }
-          }
-        },
-        onClose: () => {
-          setLoading(false);
-          toast.info("Payment cancelled.");
-        },
-      });
+      await createOrder();
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : (e as Error).message || "Checkout failed.");
     } finally {
@@ -216,58 +183,10 @@ export default function CheckoutPage() {
     }
   }
 
-  async function retryRecovery() {
-    if (!limbo) return;
-    setLimbo({ ...limbo, retrying: true });
-    try {
-      await createOrder(limbo.reference);
-    } catch {
-      setLimbo({ ...limbo, retrying: false });
-      toast.error("Still could not save your order. Please contact us with your reference.");
-    }
-  }
-
   if (!mounted) return null;
-
-  // Post-payment recovery takeover.
-  if (limbo) {
-    const wa = encodeURIComponent(`Hi Adepa, my payment went through but my order didn't save. Reference: ${limbo.reference}.`);
-    return (
-      <div className="mx-auto grid min-h-[70svh] w-full max-w-lg place-items-center px-4 py-10">
-        <div className="rounded-3xl border border-accent/40 bg-card p-8">
-          <div className="grid size-12 place-items-center rounded-2xl bg-accent/15 text-accent-foreground">
-            <AlertTriangle className="size-6" />
-          </div>
-          <h1 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-bold">Your payment went through</h1>
-          <p className="mt-2 text-muted-foreground">
-            We charged you successfully but couldn&apos;t save the order. <strong className="text-foreground">Your money is safe.</strong>{" "}
-            Tap below to finish, or send us the reference on WhatsApp.
-          </p>
-          <div className="mt-5 rounded-xl bg-secondary px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Reference</p>
-            <p className="mt-1 select-all font-mono text-lg font-bold text-primary">{limbo.reference}</p>
-          </div>
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-            <Button size="lg" className="flex-1 rounded-full" disabled={limbo.retrying} onClick={retryRecovery}>
-              {limbo.retrying ? "Finishing…" : "Finish my order"}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="flex-1 rounded-full"
-              render={<a href={`https://wa.me/${WHATSAPP}?text=${wa}`} target="_blank" rel="noopener noreferrer" />}
-            >
-              <MessageCircle className="size-4" /> WhatsApp us
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
       <span className="eyebrow">Almost there</span>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold md:text-4xl">Checkout</h1>
 
@@ -401,6 +320,20 @@ export default function CheckoutPage() {
             </section>
           )}
 
+          {/* Payment method */}
+          <section>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Payment method</h2>
+            <div className="flex items-center gap-3 rounded-2xl border-2 border-primary bg-primary/5 p-4">
+              <Banknote className="size-5 text-primary" />
+              <span>
+                <span className="block text-sm font-semibold">Cash {method === "PICKUP" ? "on pickup" : "on delivery"}</span>
+                <span className="block text-xs text-muted-foreground">
+                  Online payment isn&apos;t available yet — pay in cash when your order {method === "PICKUP" ? "is collected" : "arrives"}.
+                </span>
+              </span>
+            </div>
+          </section>
+
           {/* Promo */}
           <section>
             <h2 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -483,11 +416,12 @@ export default function CheckoutPage() {
               <span className="font-[family-name:var(--font-display)] text-2xl font-bold tabular-nums">{formatGhs(total)}</span>
             </div>
             <Button size="lg" className="mt-4 w-full rounded-full" disabled={loading} onClick={placeOrder}>
-              <CreditCard className="size-4" />
-              {method === "PICKUP" ? "Place order" : `Pay ${formatGhs(total)}`}
+              <Banknote className="size-4" />
+              Place order
             </Button>
             <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-              <Check className="size-3.5 text-primary" /> Secure payment via Paystack
+              <Check className="size-3.5 text-primary" />
+              {method === "PICKUP" ? "Pay cash when you collect your order" : "Pay cash on delivery"}
             </p>
           </div>
         </aside>
