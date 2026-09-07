@@ -9,6 +9,8 @@ export const metadata: Metadata = {
 
 const WHATSAPP = "233240425561";
 const PHONE = "+233 24 042 5561";
+const WHATSAPP_2 = "233509407691";
+const PHONE_2 = "+233 50 940 7691";
 
 export default function ContactPage() {
   return (
@@ -22,7 +24,9 @@ export default function ContactPage() {
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.2fr]">
         <div className="space-y-4">
           <ContactRow icon={Phone} label="Phone" value={PHONE} href={`tel:${PHONE.replace(/\s/g, "")}`} />
-          <ContactRow icon={MessageCircle} label="WhatsApp" value="Chat with us" href={`https://wa.me/${WHATSAPP}`} />
+          <ContactRow icon={Phone} label="Phone" value={PHONE_2} href={`tel:${PHONE_2.replace(/\s/g, "")}`} />
+          <ContactRow icon={MessageCircle} label="WhatsApp" value={PHONE} href={`https://wa.me/${WHATSAPP}`} />
+          <ContactRow icon={MessageCircle} label="WhatsApp" value={PHONE_2} href={`https://wa.me/${WHATSAPP_2}`} />
           <ContactRow icon={Mail} label="Email" value="orders@adepaporkhub.shop" href="mailto:orders@adepaporkhub.shop" />
           <ContactRow icon={MapPin} label="Location" value="Ejisu-Krapa, Ashanti Region — delivering across Kumasi" />
           <div className="overflow-hidden rounded-2xl border border-border/60">

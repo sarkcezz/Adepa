@@ -5,6 +5,7 @@ import { NewsletterSignup } from "./newsletter-signup";
 import { FacebookIcon, InstagramIcon, TikTokIcon, YoutubeIcon } from "./social-icons";
 
 const WHATSAPP = "233240425561";
+const WHATSAPP_2 = "233509407691";
 
 const SOCIALS = [
   { icon: FacebookIcon, href: process.env.NEXT_PUBLIC_FACEBOOK_URL, label: "Facebook" },
@@ -66,14 +67,22 @@ export function SiteFooter() {
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Help & contact</h4>
           <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
-            <li>
+            <li className="space-y-1.5">
               <a
                 href={`https://wa.me/${WHATSAPP}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-primary"
+                className="flex items-center gap-1.5 font-medium text-foreground hover:text-primary"
               >
-                <MessageCircle className="size-4" /> Need help? WhatsApp us
+                <MessageCircle className="size-4" /> WhatsApp: 024 042 5561
+              </a>
+              <a
+                href={`https://wa.me/${WHATSAPP_2}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 font-medium text-foreground hover:text-primary"
+              >
+                <MessageCircle className="size-4" /> WhatsApp: 050 940 7691
               </a>
             </li>
             <li>
