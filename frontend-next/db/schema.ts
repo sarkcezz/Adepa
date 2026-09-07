@@ -275,6 +275,10 @@ export const eventRegistrations = pgTable(
     customer_id: uuid("customer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     payment_status: paymentStatusEnum("payment_status").notNull().default("PENDING"),
     paystack_reference: varchar("paystack_reference", { length: 255 }),
+    /** Names of extra people this registrant is bringing — the registrant themself isn't listed here. */
+    companions: jsonb("companions").notNull().default([]),
+    /** Short code the registrant can use to view/edit/cancel this booking without signing in. */
+    management_code: varchar("management_code", { length: 12 }).notNull().unique(),
     checked_in: boolean("checked_in").notNull().default(false),
     checked_in_at: timestamp("checked_in_at"),
     created_at: timestamp("created_at").notNull().defaultNow(),

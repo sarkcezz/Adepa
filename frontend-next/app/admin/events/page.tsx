@@ -17,10 +17,10 @@ import { ImageUpload } from "@/components/admin/image-upload";
 
 type Draft = {
   id?: string; name: string; event_date: string; event_time: string;
-  venue_name: string; venue_address: string; flat_rate_ghs: string;
+  venue_name: string; venue_address: string; is_free: boolean; flat_rate_ghs: string;
   capacity: string; description: string; image_url: string; status: "DRAFT" | "PUBLISHED";
 };
-const EMPTY: Draft = { name: "", event_date: "", event_time: "18:00", venue_name: "", venue_address: "", flat_rate_ghs: "80", capacity: "50", description: "", image_url: "", status: "PUBLISHED" };
+const EMPTY: Draft = { name: "", event_date: "", event_time: "18:00", venue_name: "", venue_address: "", is_free: false, flat_rate_ghs: "80", capacity: "50", description: "", image_url: "", status: "PUBLISHED" };
 
 export default function AdminEventsPage() {
   const token = useAuth((s) => s.token);
@@ -40,7 +40,8 @@ export default function AdminEventsPage() {
   function startEdit(e: PorkEvent) {
     setDraft({
       id: e.id, name: e.name, event_date: e.event_date, event_time: e.event_time?.slice(0, 5) || "18:00",
-      venue_name: e.venue_name, venue_address: e.venue_address, flat_rate_ghs: (e.flat_rate_kobo / 100).toFixed(2),
+      venue_name: e.venue_name, venue_address: e.venue_address,
+      is_free: e.flat_rate_kobo === 0, flat_rate_ghs: (e.flat_rate_kobo / 100).toFixed(2),
       capacity: String(e.capacity), description: e.description || "", image_url: e.image_url || "",
       status: e.status === "CANCELLED" ? "DRAFT" : e.status,
     });
@@ -52,7 +53,7 @@ export default function AdminEventsPage() {
     const body = {
       name: draft.name, event_date: draft.event_date, event_time: draft.event_time,
       venue_name: draft.venue_name, venue_address: draft.venue_address,
-      flat_rate_kobo: Math.round(parseFloat(draft.flat_rate_ghs || "0") * 100),
+      flat_rate_kobo: draft.is_free ? 0 : Math.round(parseFloat(draft.flat_rate_ghs || "0") * 100),
       capacity: Number(draft.capacity), description: draft.description,
       image_url: draft.image_url || null, status: draft.status,
     };
@@ -142,10 +143,34 @@ export default function AdminEventsPage() {
             </div>
             <Fld label="Venue name" value={draft.venue_name} onChange={(v) => setDraft({ ...draft, venue_name: v })} />
             <Fld label="Venue address" value={draft.venue_address} onChange={(v) => setDraft({ ...draft, venue_address: v })} />
+            <div className="space-y-1.5">
+              <Label>Pricing</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDraft({ ...draft, is_free: true })}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${draft.is_free ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                >
+                  Free
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraft({ ...draft, is_free: false })}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${!draft.is_free ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                >
+                  Paid
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              <Fld label="Flat rate (GHS)" type="number" value={draft.flat_rate_ghs} onChange={(v) => setDraft({ ...draft, flat_rate_ghs: v })} />
+              {!draft.is_free && (
+                <Fld label="Price per person (GHS)" type="number" value={draft.flat_rate_ghs} onChange={(v) => setDraft({ ...draft, flat_rate_ghs: v })} />
+              )}
               <Fld label="Capacity" type="number" value={draft.capacity} onChange={(v) => setDraft({ ...draft, capacity: v })} />
             </div>
+            {!draft.is_free && (
+              <p className="-mt-2 text-xs text-muted-foreground">Online payment isn&apos;t set up yet — paid bookings are confirmed as pay-cash-at-the-event.</p>
+            )}
             <div className="space-y-1.5">
               <Label>Status</Label>
               <select className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as "DRAFT" | "PUBLISHED" })}>
@@ -179,9 +204,18 @@ export default function AdminEventsPage() {
               regs.map((r) => (
                 <div key={r.id} className="flex items-center justify-between gap-3 px-6 py-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{r.customer_name}</p>
+                    <p className="truncate text-sm font-semibold">
+                      {r.customer_name}
+                      {r.companions?.length > 0 && <span className="font-normal text-muted-foreground"> +{r.companions.length}</span>}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">{r.customer_phone}{r.customer_email ? ` · ${r.customer_email}` : ""}</p>
-                    <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.payment_status === "PAID" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{r.payment_status}</span>
+                    {r.companions?.length > 0 && (
+                      <p className="truncate text-xs text-muted-foreground">With: {r.companions.join(", ")}</p>
+                    )}
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.payment_status === "PAID" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{r.payment_status}</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">{r.management_code}</span>
+                    </div>
                   </div>
                   {r.checked_in ? (
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary"><Check className="size-3.5" /> Checked in</span>

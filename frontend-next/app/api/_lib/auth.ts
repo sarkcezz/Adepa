@@ -137,6 +137,13 @@ export async function resolveCheckoutUser(
     return existing;
   }
 
+  if (email) {
+    const [emailOwner] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+    if (emailOwner) {
+      return fail("An account already exists with this email address. Please sign in, or use a different email.", 409);
+    }
+  }
+
   const [guestUser] = await db
     .insert(users)
     .values({

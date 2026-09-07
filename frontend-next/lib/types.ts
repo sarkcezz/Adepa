@@ -72,9 +72,27 @@ export interface EventRegistration {
   checked_in: boolean;
   checked_in_at: string | null;
   created_at: string;
+  companions: string[];
+  management_code: string;
   customer_name: string;
   customer_phone: string;
   customer_email: string | null;
+}
+
+/** What POST /events/:id/register and the manage-by-code endpoints return. */
+export interface EventBooking {
+  id: string;
+  event_id: string;
+  payment_status: "PENDING" | "PAID" | "FAILED";
+  companions: string[];
+  management_code: string;
+  checked_in: boolean;
+  created_at: string;
+  event: PorkEvent;
+  attendee_name: string;
+  attendee_phone: string;
+  attendee_email: string | null;
+  contact_editable?: boolean;
 }
 
 export interface Address {

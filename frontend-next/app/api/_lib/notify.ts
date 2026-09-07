@@ -32,13 +32,14 @@ export async function sendEmail(to: string, subject: string, body: string, html?
     return;
   }
   try {
-    await t.sendMail({
+    const info = await t.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
       subject,
       text: body,
       ...(html ? { html } : {}),
     });
+    console.log(`[email:sent] → ${to} :: ${subject} (${info.messageId})`);
   } catch (e) {
     console.error(`[email:failed] → ${to} :: ${subject}`, e);
   }

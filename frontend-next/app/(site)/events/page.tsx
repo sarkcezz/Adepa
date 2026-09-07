@@ -2,7 +2,6 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
-import Script from "next/script";
 import Image from "next/image";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { publicApi } from "@/lib/api";
@@ -29,7 +28,6 @@ export default async function EventsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
       <header className="mb-8 max-w-2xl">
         <span className="eyebrow">Gather round</span>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-bold md:text-5xl">Pork events</h1>
@@ -67,8 +65,10 @@ export default async function EventsPage() {
                     <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
                   </div>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="font-[family-name:var(--font-display)] text-2xl font-bold text-primary">{formatGhs(e.flat_rate_kobo)}</span>
-                    <EventRegister eventId={e.id} amountKobo={e.flat_rate_kobo} soldOut={left <= 0} />
+                    <span className="font-[family-name:var(--font-display)] text-2xl font-bold text-primary">
+                      {e.flat_rate_kobo === 0 ? "Free" : formatGhs(e.flat_rate_kobo)}
+                    </span>
+                    <EventRegister eventId={e.id} soldOut={left <= 0} />
                   </div>
                 </div>
               </div>

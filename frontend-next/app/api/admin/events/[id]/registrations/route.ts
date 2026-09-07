@@ -20,6 +20,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       checked_in: eventRegistrations.checked_in,
       checked_in_at: eventRegistrations.checked_in_at,
       created_at: eventRegistrations.created_at,
+      companions: eventRegistrations.companions,
+      management_code: eventRegistrations.management_code,
       customer_name: users.name,
       customer_phone: users.phone,
       customer_email: users.email,
