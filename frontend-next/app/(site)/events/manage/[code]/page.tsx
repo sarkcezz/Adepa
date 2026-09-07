@@ -16,18 +16,19 @@ import { EventConfirmation } from "@/components/site/event-confirmation";
 export default function ManageEventBookingPage() {
   const { code } = useParams<{ code: string }>();
   const router = useRouter();
-  const [booking, setBooking] = useState<EventBooking | null | "not-found">(null);
+  const [booking, setBooking] = useState<EventBooking | null | "not-found" | "error">(null);
   const [companions, setCompanions] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
   function load() {
+    setBooking(null);
     api<EventBooking>(`/events/registrations/${code}`)
       .then((b) => {
         setBooking(b);
         setCompanions(b.companions);
       })
-      .catch(() => setBooking("not-found"));
+      .catch((e) => setBooking(e instanceof ApiError && e.status === 404 ? "not-found" : "error"));
   }
   useEffect(load, [code]);
 
@@ -67,6 +68,16 @@ export default function ManageEventBookingPage() {
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">Booking not found</h1>
         <p className="mt-2 text-muted-foreground">Double-check your code, or it may have already been cancelled.</p>
         <Link href="/events/manage" className="mt-6 font-semibold text-primary hover:underline">Try another code</Link>
+      </div>
+    );
+  }
+
+  if (booking === "error") {
+    return (
+      <div className="mx-auto flex min-h-[60svh] w-full max-w-md flex-col items-center justify-center px-4 text-center">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">Something went wrong</h1>
+        <p className="mt-2 text-muted-foreground">We couldn&apos;t load your booking — your code is likely still fine. Please try again.</p>
+        <Button className="mt-6 rounded-full" onClick={load}>Try again</Button>
       </div>
     );
   }

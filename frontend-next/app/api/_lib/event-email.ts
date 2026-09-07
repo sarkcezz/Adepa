@@ -1,16 +1,16 @@
 import { sendEmail } from "./notify";
-import { formatGhs } from "@/lib/format";
+import { formatGhs, formatEventDateTime } from "@/lib/format";
 
 const LOGO_URL = "https://www.adepaporkhub.shop/images/Adepa_logo.JPEG";
 const SITE_URL = "https://www.adepaporkhub.shop";
 
-function formatEventDate(dateStr: string, timeStr: string): string {
-  const [h, m] = timeStr.slice(0, 5).split(":").map(Number);
-  const date = new Date(`${dateStr}T00:00:00`);
-  const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${dateLabel} · ${h12}:${String(m).padStart(2, "0")} ${period}`;
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /** Sends the branded booking-confirmation email. Never throws — a delivery failure shouldn't fail the booking. */
@@ -33,10 +33,10 @@ export async function sendEventConfirmationEmail(to: string, opts: {
   const isFree = flatRateKobo === 0;
 
   const guestRows = [attendeeName, ...companions]
-    .map((name, i) => `<tr><td style="padding:6px 0;font-size:14px;color:#34251b;border-bottom:${i === companions.length ? "none" : "1px dashed #d9c7b0"}">${i === 0 ? name + " (you)" : name}</td></tr>`)
+    .map((name, i) => `<tr><td style="padding:6px 0;font-size:14px;color:#34251b;border-bottom:${i === companions.length ? "none" : "1px dashed #d9c7b0"}">${escapeHtml(i === 0 ? name + " (you)" : name)}</td></tr>`)
     .join("");
 
-  const text = `You're booked for ${eventName}!\n\n${formatEventDate(eventDate, eventTime)}\n${venueName}${venueAddress ? ", " + venueAddress : ""}\n\nParty of ${partySize}: ${[attendeeName, ...companions].join(", ")}\n\n${isFree ? "Free entry." : `${formatGhs(flatRateKobo)} per person — pay cash at the event. Total: ${formatGhs(total)}.`}\n\nYour booking code: ${managementCode}\nManage this booking: ${manageUrl}\n\n— Adepa Pork Hub`;
+  const text = `You're booked for ${eventName}!\n\n${formatEventDateTime(eventDate, eventTime)}\n${venueName}${venueAddress ? ", " + venueAddress : ""}\n\nParty of ${partySize}: ${[attendeeName, ...companions].join(", ")}\n\n${isFree ? "Free entry." : `${formatGhs(flatRateKobo)} per person — pay cash at the event. Total: ${formatGhs(total)}.`}\n\nYour booking code: ${managementCode}\nManage this booking: ${manageUrl}\n\n— Adepa Pork Hub`;
 
   const html = `
 <div style="background:#f4e9d8;padding:32px 16px;font-family:Georgia,serif;">
@@ -56,16 +56,16 @@ export async function sendEventConfirmationEmail(to: string, opts: {
 
     <tr><td style="padding:24px 28px 8px;">
       <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;color:#b15a34;margin-bottom:6px;">Booking confirmation</div>
-      <div style="font-size:24px;font-weight:bold;color:#34251b;">${eventName}</div>
+      <div style="font-size:24px;font-weight:bold;color:#34251b;">${escapeHtml(eventName)}</div>
       <table role="presentation" width="100%" style="margin-top:16px;font-family:Arial,sans-serif;">
         <tr>
           <td width="50%" style="padding-bottom:12px;">
             <div style="font-size:10px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;color:#8a7460;">Date &amp; time</div>
-            <div style="font-size:14px;color:#34251b;margin-top:2px;">${formatEventDate(eventDate, eventTime)}</div>
+            <div style="font-size:14px;color:#34251b;margin-top:2px;">${formatEventDateTime(eventDate, eventTime)}</div>
           </td>
           <td width="50%" style="padding-bottom:12px;">
             <div style="font-size:10px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;color:#8a7460;">Venue</div>
-            <div style="font-size:14px;color:#34251b;margin-top:2px;">${venueName}${venueAddress ? `<br>${venueAddress}` : ""}</div>
+            <div style="font-size:14px;color:#34251b;margin-top:2px;">${escapeHtml(venueName)}${venueAddress ? `<br>${escapeHtml(venueAddress)}` : ""}</div>
           </td>
         </tr>
       </table>

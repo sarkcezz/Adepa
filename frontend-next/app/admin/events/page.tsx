@@ -17,10 +17,10 @@ import { ImageUpload } from "@/components/admin/image-upload";
 
 type Draft = {
   id?: string; name: string; event_date: string; event_time: string;
-  venue_name: string; venue_address: string; is_free: boolean; flat_rate_ghs: string;
+  venue_name: string; venue_address: string; flat_rate_ghs: string;
   capacity: string; description: string; image_url: string; status: "DRAFT" | "PUBLISHED";
 };
-const EMPTY: Draft = { name: "", event_date: "", event_time: "18:00", venue_name: "", venue_address: "", is_free: false, flat_rate_ghs: "80", capacity: "50", description: "", image_url: "", status: "PUBLISHED" };
+const EMPTY: Draft = { name: "", event_date: "", event_time: "18:00", venue_name: "", venue_address: "", flat_rate_ghs: "80", capacity: "50", description: "", image_url: "", status: "PUBLISHED" };
 
 export default function AdminEventsPage() {
   const token = useAuth((s) => s.token);
@@ -41,7 +41,7 @@ export default function AdminEventsPage() {
     setDraft({
       id: e.id, name: e.name, event_date: e.event_date, event_time: e.event_time?.slice(0, 5) || "18:00",
       venue_name: e.venue_name, venue_address: e.venue_address,
-      is_free: e.flat_rate_kobo === 0, flat_rate_ghs: (e.flat_rate_kobo / 100).toFixed(2),
+      flat_rate_ghs: (e.flat_rate_kobo / 100).toFixed(2),
       capacity: String(e.capacity), description: e.description || "", image_url: e.image_url || "",
       status: e.status === "CANCELLED" ? "DRAFT" : e.status,
     });
@@ -53,7 +53,7 @@ export default function AdminEventsPage() {
     const body = {
       name: draft.name, event_date: draft.event_date, event_time: draft.event_time,
       venue_name: draft.venue_name, venue_address: draft.venue_address,
-      flat_rate_kobo: draft.is_free ? 0 : Math.round(parseFloat(draft.flat_rate_ghs || "0") * 100),
+      flat_rate_kobo: Math.round(parseFloat(draft.flat_rate_ghs || "0") * 100),
       capacity: Number(draft.capacity), description: draft.description,
       image_url: draft.image_url || null, status: draft.status,
     };
@@ -87,6 +87,8 @@ export default function AdminEventsPage() {
       setRegs((prev) => prev?.map((r) => (r.id === reg.id ? { ...r, checked_in: true, checked_in_at: new Date().toISOString() } : r)) ?? null);
     } catch { toast.error("Could not check in."); }
   }
+
+  const isFree = !draft.flat_rate_ghs || Number(draft.flat_rate_ghs) === 0;
 
   return (
     <div className="space-y-6">
@@ -148,27 +150,27 @@ export default function AdminEventsPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setDraft({ ...draft, is_free: true })}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${draft.is_free ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                  onClick={() => setDraft({ ...draft, flat_rate_ghs: "0" })}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${isFree ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
                 >
                   Free
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDraft({ ...draft, is_free: false })}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${!draft.is_free ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                  onClick={() => setDraft({ ...draft, flat_rate_ghs: isFree ? "80" : draft.flat_rate_ghs })}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${!isFree ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
                 >
                   Paid
                 </button>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {!draft.is_free && (
+              {!isFree && (
                 <Fld label="Price per person (GHS)" type="number" value={draft.flat_rate_ghs} onChange={(v) => setDraft({ ...draft, flat_rate_ghs: v })} />
               )}
               <Fld label="Capacity" type="number" value={draft.capacity} onChange={(v) => setDraft({ ...draft, capacity: v })} />
             </div>
-            {!draft.is_free && (
+            {!isFree && (
               <p className="-mt-2 text-xs text-muted-foreground">Online payment isn&apos;t set up yet — paid bookings are confirmed as pay-cash-at-the-event.</p>
             )}
             <div className="space-y-1.5">

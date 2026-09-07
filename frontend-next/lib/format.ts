@@ -20,6 +20,16 @@ export function formatDate(iso: string): string {
   });
 }
 
+/** DB "date" + "time" columns (e.g. "2026-09-12", "17:00:00") → "Sat, 12 Sept 2026 · 5:00 PM". */
+export function formatEventDateTime(dateStr: string, timeStr: string): string {
+  const date = new Date(`${dateStr}T00:00:00`);
+  const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  const [h, m] = timeStr.slice(0, 5).split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${dateLabel} · ${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 export const PRODUCT_LINE_LABEL: Record<string, string> = {
   RAW: "Raw cut",
   SPICED: "Spiced",

@@ -138,9 +138,16 @@ export async function resolveCheckoutUser(
   }
 
   if (email) {
-    const [emailOwner] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+    const [emailOwner] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (emailOwner) {
-      return fail("An account already exists with this email address. Please sign in, or use a different email.", 409);
+      if (!emailOwner.is_guest) {
+        return fail("An account already exists with this email address. Please sign in, or use a different email.", 409);
+      }
+      // Same guest email, different phone than the lookup above found —
+      // reuse this guest identity (email is globally unique, so a second
+      // guest row with the same address could never be created anyway).
+      const [updated] = await db.update(users).set({ name: name!, phone: phone! }).where(eq(users.id, emailOwner.id)).returning();
+      return updated;
     }
   }
 

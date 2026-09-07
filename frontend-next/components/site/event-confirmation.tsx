@@ -1,17 +1,8 @@
 import { Check, Printer } from "lucide-react";
 import type { EventBooking } from "@/lib/types";
-import { formatGhs } from "@/lib/format";
+import { formatGhs, formatEventDateTime } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
-
-function formatEventDateTime(dateStr: string, timeStr: string): string {
-  const date = new Date(`${dateStr}T00:00:00`);
-  const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  const [h, m] = timeStr.slice(0, 5).split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${dateLabel} · ${h12}:${String(m).padStart(2, "0")} ${period}`;
-}
 
 /** Branded ticket-style confirmation — shown right after booking, emailed as HTML, and printable as a PDF. */
 export function EventConfirmation({ booking, showPrintButton = true }: { booking: EventBooking; showPrintButton?: boolean }) {
