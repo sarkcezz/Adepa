@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { formatGhs, formatDate } from "@/lib/format";
 import { STATUS_LABEL } from "@/lib/order";
@@ -27,6 +27,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const debounced = useDebounced(search);
 
   function load() {
@@ -50,6 +51,25 @@ export default function AdminOrdersPage() {
       toast.success("Status updated.");
     } catch {
       toast.error("Could not update status.");
+    }
+  }
+
+  async function remove(o: Order) {
+    const ok = confirm(
+      `Delete order ${o.order_number} (${formatGhs(o.total_kobo)})?\n\n` +
+        `This permanently removes the order and its items from your sales history — it will no longer appear in revenue reports. This can't be undone.\n\n` +
+        `To keep the record but void the sale, set its status to Cancelled instead.`,
+    );
+    if (!ok) return;
+    setDeletingId(o.id);
+    try {
+      await api(`/admin/orders/${o.id}`, { method: "DELETE", token: token! });
+      setOrders((prev) => prev?.filter((x) => x.id !== o.id) ?? null);
+      toast.success(`Order ${o.order_number} deleted.`);
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Could not delete order.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -96,6 +116,7 @@ export default function AdminOrdersPage() {
                   <th className="px-4 py-3 font-semibold">Customer</th>
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -120,6 +141,17 @@ export default function AdminOrdersPage() {
                             <option key={s} value={s}>{STATUS_LABEL[s]}</option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => remove(o)}
+                          disabled={deletingId === o.id}
+                          className="grid size-7 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          aria-label={`Delete order ${o.order_number}`}
+                          title="Delete order"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
                       </td>
                     </tr>
                   );
