@@ -83,7 +83,7 @@ export function SiteHeader() {
             >
               <Menu className="size-5" />
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 max-w-[88vw] p-0">
+            <SheetContent side="right" className="p-0 data-[side=right]:w-80 data-[side=right]:max-w-[88vw]">
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="flex h-full flex-col">
                 <div className="border-b border-border/60 px-6 py-5">

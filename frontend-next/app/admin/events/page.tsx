@@ -97,7 +97,7 @@ export default function AdminEventsPage() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {items.map((e) => (
-            <div key={e.id} className="rounded-3xl border border-border/60 bg-card p-5">
+            <div key={e.id} className="min-w-0 rounded-3xl border border-border/60 bg-card p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   {e.image_url ? (
@@ -113,12 +113,12 @@ export default function AdminEventsPage() {
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${e.status === "PUBLISHED" ? "bg-primary/10 text-primary" : e.status === "CANCELLED" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{e.status}</span>
               </div>
               <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.description}</p>
-              <div className="mt-4 flex items-center justify-between">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm">{e.registered_count}/{e.capacity} · <strong>{formatGhs(e.flat_rate_kobo)}</strong></span>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => openRegistrants(e)} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Users className="size-3.5" /> Registrants</button>
-                  <button onClick={() => startEdit(e)} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Pencil className="size-3.5" /> Edit</button>
-                  {e.status !== "CANCELLED" && <button onClick={() => cancel(e)} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10"><XCircle className="size-3.5" /> Cancel</button>}
+                <div className="flex flex-wrap items-center gap-1">
+                  <button onClick={() => openRegistrants(e)} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Users className="size-3.5" /> Registrants</button>
+                  <button onClick={() => startEdit(e)} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Pencil className="size-3.5" /> Edit</button>
+                  {e.status !== "CANCELLED" && <button onClick={() => cancel(e)} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10"><XCircle className="size-3.5" /> Cancel</button>}
                 </div>
               </div>
             </div>
