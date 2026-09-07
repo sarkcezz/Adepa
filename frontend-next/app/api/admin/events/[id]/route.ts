@@ -12,6 +12,17 @@ const FIELDS: (keyof Input)[] = [
   "flat_rate_kobo", "capacity", "description", "image_url", "status",
 ];
 
+/** GET /admin/events/:id — a single event, for the registrants page header. */
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await guard(req, ["admin"]);
+  if (admin instanceof NextResponse) return admin;
+  const { id } = await params;
+
+  const [row] = await db.select().from(porkEvents).where(eq(porkEvents.id, id)).limit(1);
+  if (!row) return fail("Event not found.", 404);
+  return json(row);
+}
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await guard(req, ["admin"]);
   if (admin instanceof NextResponse) return admin;

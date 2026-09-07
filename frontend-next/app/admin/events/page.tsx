@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, XCircle, Users } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { formatGhs, formatDate } from "@/lib/format";
-import type { PorkEvent, Paginated, EventRegistration } from "@/lib/types";
+import type { PorkEvent, Paginated } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ImageUpload } from "@/components/admin/image-upload";
-import { RegistrantsTable } from "@/components/admin/registrants-table";
 
 type Draft = {
   id?: string; name: string; event_date: string; event_time: string;
@@ -29,8 +29,6 @@ export default function AdminEventsPage() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [saving, setSaving] = useState(false);
-  const [regsFor, setRegsFor] = useState<PorkEvent | null>(null);
-  const [regs, setRegs] = useState<EventRegistration[] | null>(null);
 
   function load() {
     if (!token) return;
@@ -73,14 +71,6 @@ export default function AdminEventsPage() {
     catch { toast.error("Could not cancel."); }
   }
 
-  function openRegistrants(e: PorkEvent) {
-    setRegsFor(e);
-    setRegs(null);
-    api<{ data: EventRegistration[] }>(`/admin/events/${e.id}/registrations`, { token: token! })
-      .then((r) => setRegs(r.data))
-      .catch(() => setRegs([]));
-  }
-
   const isFree = !draft.flat_rate_ghs || Number(draft.flat_rate_ghs) === 0;
 
   return (
@@ -116,7 +106,7 @@ export default function AdminEventsPage() {
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm">{e.registered_count}/{e.capacity} · <strong>{formatGhs(e.flat_rate_kobo)}</strong></span>
                 <div className="flex flex-wrap items-center gap-1">
-                  <button onClick={() => openRegistrants(e)} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Users className="size-3.5" /> Registrants</button>
+                  <Link href={`/admin/events/${e.id}/registrants`} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Users className="size-3.5" /> Registrants</Link>
                   <button onClick={() => startEdit(e)} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold hover:bg-secondary"><Pencil className="size-3.5" /> Edit</button>
                   {e.status !== "CANCELLED" && <button onClick={() => cancel(e)} className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10"><XCircle className="size-3.5" /> Cancel</button>}
                 </div>
@@ -183,20 +173,6 @@ export default function AdminEventsPage() {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={!!regsFor} onOpenChange={(o) => !o && setRegsFor(null)}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-3xl">
-          <SheetTitle className="sr-only">Registrants — {regsFor?.name}</SheetTitle>
-          <div className="border-b border-border/60 px-6 py-4">
-            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">Registrants</h2>
-            <p className="text-sm text-muted-foreground">{regsFor?.name}</p>
-          </div>
-          {regs === null ? (
-            <div className="space-y-2 p-6">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-          ) : (
-            regsFor && <RegistrantsTable eventId={regsFor.id} eventName={regsFor.name} regs={regs} onChange={setRegs} />
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
