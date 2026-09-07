@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
 import Script from "next/script";
+import Image from "next/image";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { publicApi } from "@/lib/api";
 import type { PorkEvent } from "@/lib/types";
@@ -47,6 +48,9 @@ export default async function EventsPage() {
             return (
               <div key={e.id} className="overflow-hidden rounded-3xl border border-border/60 bg-card">
                 <div className="relative h-40 bg-gradient-to-br from-primary to-primary/60">
+                  {e.image_url && (
+                    <Image src={e.image_url} alt={e.name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+                  )}
                   <span className="absolute right-4 top-4 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-primary">
                     {left > 0 ? `${left} slots left` : "Sold out"}
                   </span>

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { ImageUpload } from "@/components/admin/image-upload";
 
 type Draft = {
   id?: string;
@@ -178,7 +179,7 @@ export default function AdminProductsPage() {
             </h2>
           </div>
           <div className="space-y-4 p-6">
-            <ImageUpload value={draft.image_url} onChange={(url) => setDraft({ ...draft, image_url: url })} />
+            <ImageUpload value={draft.image_url} onChange={(url) => setDraft({ ...draft, image_url: url })} folder="products" />
             <GalleryUpload value={draft.gallery_urls} onChange={(urls) => setDraft({ ...draft, gallery_urls: urls })} />
 
             <div className="space-y-1.5">
@@ -281,58 +282,6 @@ export default function AdminProductsPage() {
           </div>
         </SheetContent>
       </Sheet>
-    </div>
-  );
-}
-
-function ImageUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
-  const token = useAuth((s) => s.token);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  async function handle(file: File) {
-    if (!file.type.startsWith("image/")) return toast.error("Choose an image file.");
-    if (file.size > 10 * 1024 * 1024) return toast.error("Max 10MB.");
-    setUploading(true);
-    try {
-      const ext = file.type.split("/")[1] || "jpg";
-      const blob = await upload(`products/${crypto.randomUUID()}.${ext}`, file, {
-        access: "public",
-        handleUploadUrl: `${API_BASE}/admin/upload/image`,
-        contentType: file.type,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      onChange(blob.url);
-      toast.success("Image uploaded.");
-    } catch {
-      toast.error("Upload failed.");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <Label>Image</Label>
-      {value ? (
-        <div className="relative inline-block">
-          <Image src={value} alt="" width={160} height={160} className="size-40 rounded-xl object-cover" />
-          <button onClick={() => onChange("")} className="absolute -right-2 -top-2 grid size-7 place-items-center rounded-full bg-destructive text-white" aria-label="Remove image">
-            <X className="size-3.5" />
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-secondary/30 py-8 text-sm hover:border-primary hover:bg-primary/5"
-        >
-          {uploading ? <Loader2 className="size-6 animate-spin text-primary" /> : <Upload className="size-6 text-primary" />}
-          <span className="font-medium">{uploading ? "Uploading…" : "Click to upload"}</span>
-          <span className="text-xs text-muted-foreground">JPG, PNG, WEBP · max 10MB</span>
-        </button>
-      )}
-      <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) handle(f); e.target.value = ""; }} />
     </div>
   );
 }

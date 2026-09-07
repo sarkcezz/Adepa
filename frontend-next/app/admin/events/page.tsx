@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, XCircle, Users, Check } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { ImageUpload } from "@/components/admin/image-upload";
 
 type Draft = {
   id?: string; name: string; event_date: string; event_time: string;
@@ -101,9 +103,16 @@ export default function AdminEventsPage() {
           {items.map((e) => (
             <div key={e.id} className="rounded-3xl border border-border/60 bg-card p-5">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="font-[family-name:var(--font-display)] truncate text-xl font-bold">{e.name}</h3>
-                  <p className="truncate text-sm text-muted-foreground">{formatDate(e.event_date)} · {e.event_time?.slice(0, 5)} · {e.venue_name}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  {e.image_url ? (
+                    <Image src={e.image_url} alt="" width={48} height={48} className="size-12 shrink-0 rounded-xl object-cover" />
+                  ) : (
+                    <div className="size-12 shrink-0 rounded-xl bg-secondary" />
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="font-[family-name:var(--font-display)] truncate text-xl font-bold">{e.name}</h3>
+                    <p className="truncate text-sm text-muted-foreground">{formatDate(e.event_date)} · {e.event_time?.slice(0, 5)} · {e.venue_name}</p>
+                  </div>
                 </div>
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${e.status === "PUBLISHED" ? "bg-primary/10 text-primary" : e.status === "CANCELLED" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{e.status}</span>
               </div>
@@ -144,7 +153,7 @@ export default function AdminEventsPage() {
                 <option value="PUBLISHED">Published</option>
               </select>
             </div>
-            <Fld label="Image URL (optional)" value={draft.image_url} onChange={(v) => setDraft({ ...draft, image_url: v })} />
+            <ImageUpload value={draft.image_url} onChange={(url) => setDraft({ ...draft, image_url: url })} folder="events" />
             <div className="space-y-1.5">
               <Label>Description</Label>
               <textarea rows={3} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
