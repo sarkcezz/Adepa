@@ -58,7 +58,24 @@ export default async function EventsPage() {
                   <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.description}</p>
                   <ul className="mt-4 space-y-1.5 text-sm">
                     <li className="flex items-center gap-2"><Calendar className="size-4 text-accent" /> {formatDate(e.event_date)} · {e.event_time?.slice(0, 5)}</li>
-                    <li className="flex items-center gap-2"><MapPin className="size-4 text-accent" /> {e.venue_name}</li>
+                    <li className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
+                      <span>
+                        {e.venue_name}
+                        {e.venue_address ? (
+                          e.venue_address.startsWith("http") ? (
+                            <>
+                              {e.venue_name ? " · " : ""}
+                              <a href={e.venue_address} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-accent">
+                                View on map
+                              </a>
+                            </>
+                          ) : (
+                            <>{e.venue_name ? ", " : ""}{e.venue_address}</>
+                          )
+                        ) : null}
+                      </span>
+                    </li>
                     <li className="flex items-center gap-2"><Users className="size-4 text-accent" /> Capacity {e.capacity}</li>
                   </ul>
                   <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">

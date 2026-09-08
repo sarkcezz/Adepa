@@ -48,7 +48,24 @@ export function EventConfirmation({ booking, showPrintButton = true }: { booking
             </div>
             <div>
               <p className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Venue</p>
-              <p className="mt-0.5 text-sm text-foreground">{event.venue_name}{event.venue_address ? <><br />{event.venue_address}</> : null}</p>
+              <p className="mt-0.5 text-sm text-foreground">
+                {event.venue_name}
+                {event.venue_address ? (
+                  event.venue_address.startsWith("http") ? (
+                    <>
+                      <br />
+                      <a href={event.venue_address} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 print:text-foreground">
+                        View on map
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <br />
+                      {event.venue_address}
+                    </>
+                  )
+                ) : null}
+              </p>
             </div>
           </div>
         </div>
