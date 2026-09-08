@@ -1,4 +1,4 @@
-import { inArray, like, sql } from "drizzle-orm";
+import { and, eq, inArray, like, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { products, campaigns, orders } from "@/db/schema";
 
@@ -37,6 +37,25 @@ export interface CampaignCheck {
   free_delivery?: boolean;
 }
 
+/** Shared eligibility check: validity window, usage cap, minimum order, product-line scoping. */
+function checkEligibility(c: CampaignRow, subtotalKobo: number, productLines?: string[]): { ok: true } | { ok: false; message: string } {
+  const now = Date.now();
+  if (now < c.valid_from.getTime() || now > c.valid_to.getTime()) {
+    return { ok: false, message: "Promo code expired or not yet active." };
+  }
+  if (c.max_usage && c.usage_count >= c.max_usage) {
+    return { ok: false, message: "Promo code has reached its usage limit." };
+  }
+  if (subtotalKobo < c.min_order_kobo) {
+    return { ok: false, message: "Minimum order is GHS " + (c.min_order_kobo / 100).toFixed(2) };
+  }
+  const lines = c.applicable_lines as string[] | null;
+  if (lines?.length && productLines?.length && !lines.some((l) => productLines.includes(l))) {
+    return { ok: false, message: "Promo not applicable to selected products." };
+  }
+  return { ok: true };
+}
+
 /** Validate a promo code against a subtotal (+ optional product lines). */
 export async function validateCampaign(
   code: string,
@@ -51,25 +70,8 @@ export async function validateCampaign(
 
   if (!c) return { valid: false, message: "Promo code not found." };
 
-  const now = Date.now();
-  if (now < c.valid_from.getTime() || now > c.valid_to.getTime()) {
-    return { valid: false, message: "Promo code expired or not yet active." };
-  }
-  if (c.max_usage && c.usage_count >= c.max_usage) {
-    return { valid: false, message: "Promo code has reached its usage limit." };
-  }
-  if (subtotalKobo < c.min_order_kobo) {
-    return {
-      valid: false,
-      message: "Minimum order is GHS " + (c.min_order_kobo / 100).toFixed(2),
-    };
-  }
-  const lines = c.applicable_lines as string[] | null;
-  if (lines?.length && productLines?.length) {
-    if (!lines.some((l) => productLines.includes(l))) {
-      return { valid: false, message: "Promo not applicable to selected products." };
-    }
-  }
+  const eligibility = checkEligibility(c, subtotalKobo, productLines);
+  if (!eligibility.ok) return { valid: false, message: eligibility.message };
 
   return {
     valid: true,
@@ -78,6 +80,36 @@ export async function validateCampaign(
     campaign_id: c.id,
     discount_kobo: discountKobo(c, subtotalKobo),
     free_delivery: c.discount_type === "FREE_DELIVERY",
+  };
+}
+
+/**
+ * Bulk-purchase discounts: the best (largest discount) active, currently-valid
+ * auto_apply campaign the cart qualifies for — no code needed. Only used when
+ * the customer hasn't entered a promo code themselves, so the two never stack.
+ */
+export async function findAutoApplyCampaign(subtotalKobo: number, productLines?: string[]): Promise<CampaignCheck | null> {
+  const candidates = await db
+    .select()
+    .from(campaigns)
+    .where(and(eq(campaigns.auto_apply, true), eq(campaigns.is_active, true)));
+
+  let best: { campaign: CampaignRow; discount_kobo: number } | null = null;
+  for (const c of candidates) {
+    if (!checkEligibility(c, subtotalKobo, productLines).ok) continue;
+    const amount = discountKobo(c, subtotalKobo);
+    // FREE_DELIVERY campaigns discount nothing directly, but still count as "best" if nothing else qualifies.
+    if (!best || amount > best.discount_kobo) best = { campaign: c, discount_kobo: amount };
+  }
+  if (!best) return null;
+
+  return {
+    valid: true,
+    message: "Bulk discount applied.",
+    campaign: best.campaign,
+    campaign_id: best.campaign.id,
+    discount_kobo: best.discount_kobo,
+    free_delivery: best.campaign.discount_type === "FREE_DELIVERY",
   };
 }
 

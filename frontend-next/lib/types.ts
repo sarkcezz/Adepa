@@ -176,7 +176,21 @@ export interface Campaign {
   usage_count: number;
   valid_from: string;
   valid_to: string;
+  auto_apply: boolean;
   is_active: boolean;
+}
+
+export interface ShippingZone {
+  id: string;
+  district: string;
+  fee_kobo: number;
+}
+
+export interface ShippingSettings {
+  id: string;
+  default_fee_kobo: number;
+  free_weight_grams: number;
+  surcharge_per_kg_kobo: number;
 }
 
 export interface AuditLog {

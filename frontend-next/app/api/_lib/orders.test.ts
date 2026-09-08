@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { discountKobo } from "./orders";
-import { calculateDeliveryFeeKobo, DEFAULT_ZONE_FEE_KOBO } from "./shipping";
+import { computeDeliveryFeeKobo } from "./shipping";
 
 type Campaign = Parameters<typeof discountKobo>[0];
 const campaign = (overrides: Partial<Campaign>): Campaign => ({ ...overrides } as Campaign);
@@ -24,24 +24,21 @@ describe("discountKobo", () => {
   });
 });
 
-describe("calculateDeliveryFeeKobo", () => {
+// The zone lookup + settings fetch (calculateDeliveryFeeKobo) now reads
+// admin-configured values from the DB — covered by the shipping admin route
+// tests instead. This suite covers just the fee math, DB-free.
+describe("computeDeliveryFeeKobo", () => {
+  const FREE_WEIGHT = 5_000;
+  const SURCHARGE = 200;
+
   it("charges the zone's base fee under the free-weight allowance", () => {
-    expect(calculateDeliveryFeeKobo("Ejisu", 2_000)).toBe(1_000);
-    expect(calculateDeliveryFeeKobo("Suame", 5_000)).toBe(1_700);
-  });
-
-  it("is case-insensitive on the district name", () => {
-    expect(calculateDeliveryFeeKobo("SUAME", 0)).toBe(1_700);
-  });
-
-  it("falls back to the default fee for an unknown or missing district", () => {
-    expect(calculateDeliveryFeeKobo("Somewhere Else", 0)).toBe(DEFAULT_ZONE_FEE_KOBO);
-    expect(calculateDeliveryFeeKobo(undefined, 0)).toBe(DEFAULT_ZONE_FEE_KOBO);
+    expect(computeDeliveryFeeKobo(1_000, 2_000, FREE_WEIGHT, SURCHARGE)).toBe(1_000);
+    expect(computeDeliveryFeeKobo(1_700, 5_000, FREE_WEIGHT, SURCHARGE)).toBe(1_700);
   });
 
   it("adds a per-kg surcharge past the free weight allowance, rounding up", () => {
-    expect(calculateDeliveryFeeKobo("Ejisu", 5_000)).toBe(1_000); // exactly at the allowance
-    expect(calculateDeliveryFeeKobo("Ejisu", 5_500)).toBe(1_200); // 0.5kg over -> 1 extra kg
-    expect(calculateDeliveryFeeKobo("Ejisu", 7_000)).toBe(1_400); // 2kg over
+    expect(computeDeliveryFeeKobo(1_000, 5_000, FREE_WEIGHT, SURCHARGE)).toBe(1_000); // exactly at the allowance
+    expect(computeDeliveryFeeKobo(1_000, 5_500, FREE_WEIGHT, SURCHARGE)).toBe(1_200); // 0.5kg over -> 1 extra kg
+    expect(computeDeliveryFeeKobo(1_000, 7_000, FREE_WEIGHT, SURCHARGE)).toBe(1_400); // 2kg over
   });
 });

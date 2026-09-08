@@ -17,5 +17,5 @@ export async function POST(req: Request) {
     // Unknown products just fall back to the zone base fee (no weight surcharge).
   }
 
-  return json({ fee_kobo: calculateDeliveryFeeKobo(b.district, totalWeightGrams) });
+  return json({ fee_kobo: await calculateDeliveryFeeKobo(b.district, totalWeightGrams) });
 }

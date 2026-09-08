@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Package, Megaphone, Calendar, Tag,
-  Users, UserCircle, BarChart3, FileText, LogOut, Menu, X, ExternalLink, Calculator,
+  Users, UserCircle, BarChart3, FileText, LogOut, Menu, X, ExternalLink, Calculator, Truck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-store";
 import { useHasMounted } from "@/lib/cart-store";
@@ -22,6 +22,7 @@ const GROUPS: { heading: string; items: Item[] }[] = [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
       { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
       { href: "/admin/products", label: "Products", icon: Package },
+      { href: "/admin/shipping", label: "Delivery pricing", icon: Truck },
     ],
   },
   {

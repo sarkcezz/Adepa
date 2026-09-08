@@ -13,13 +13,15 @@ describe("formatGhs", () => {
 });
 
 describe("formatWeight", () => {
-  it("formats grams under 1000 as g", () => {
-    expect(formatWeight(500)).toBe("500g");
+  it("formats whole-pound pack sizes cleanly", () => {
+    expect(formatWeight(454)).toBe("1lb"); // 1lb pack, rounds off the 453.592 remainder
+    expect(formatWeight(907)).toBe("2lb");
+    expect(formatWeight(2268)).toBe("5lb");
+    expect(formatWeight(4536)).toBe("10lb");
   });
 
-  it("formats 1000+ grams as kg", () => {
-    expect(formatWeight(1000)).toBe("1kg");
-    expect(formatWeight(1500)).toBe("1.5kg");
+  it("shows one decimal for a non-whole pound amount", () => {
+    expect(formatWeight(600)).toBe("1.3lb");
   });
 
   it("handles missing weight", () => {

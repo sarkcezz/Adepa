@@ -43,6 +43,13 @@
       "when": 1788782996461,
       "tag": "0005_fine_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788860500456,
+      "tag": "0006_superb_king_cobra",
+      "breakpoints": true
     }
   ]
 }

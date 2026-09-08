@@ -11,6 +11,7 @@ import {
   loadCartProducts,
   nextOrderNumber,
   validateCampaign,
+  findAutoApplyCampaign,
   type CartItem,
 } from "@/app/api/_lib/orders";
 import { calculateDeliveryFeeKobo } from "@/app/api/_lib/shipping";
@@ -127,21 +128,30 @@ export async function POST(req: Request) {
   const subtotal = lines.reduce((n, l) => n + l.subtotal_kobo, 0);
   const totalWeightGrams = lines.reduce((n, l) => n + (l.weight_grams ?? 0) * l.quantity, 0);
 
-  // Campaign
+  // Campaign — a manually entered code always wins; a bulk-purchase discount
+  // only kicks in automatically when the customer didn't type one, so the
+  // two never stack.
   let discount = 0;
   let campaignId: string | null = null;
   let freeDelivery = false;
+  const lineCodes = [...new Set(lines.map((l) => productsById.get(l.product_id)!.product_line))];
   if (b.promo_code?.trim()) {
-    const lineCodes = [...new Set(lines.map((l) => productsById.get(l.product_id)!.product_line))];
     const check = await validateCampaign(b.promo_code.trim(), subtotal, lineCodes);
     if (check.valid) {
       discount = check.discount_kobo ?? 0;
       campaignId = check.campaign_id ?? null;
       freeDelivery = !!check.free_delivery;
     }
+  } else {
+    const auto = await findAutoApplyCampaign(subtotal, lineCodes);
+    if (auto?.valid) {
+      discount = auto.discount_kobo ?? 0;
+      campaignId = auto.campaign_id ?? null;
+      freeDelivery = !!auto.free_delivery;
+    }
   }
 
-  let deliveryFee = b.delivery_method === "HOME" ? calculateDeliveryFeeKobo(addressDistrict, totalWeightGrams) : 0;
+  let deliveryFee = b.delivery_method === "HOME" ? await calculateDeliveryFeeKobo(addressDistrict, totalWeightGrams) : 0;
   if (freeDelivery) deliveryFee = 0;
 
   // Loyalty redemption — capped to the customer's balance and to what's left to pay.

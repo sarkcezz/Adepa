@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       valid_from: new Date(b.valid_from as unknown as string),
       valid_to: new Date(b.valid_to as unknown as string),
       applicable_lines: b.applicable_lines ?? null,
+      auto_apply: b.auto_apply ?? false,
       is_active: b.is_active ?? true,
     })
     .returning();

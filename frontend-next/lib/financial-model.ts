@@ -117,8 +117,8 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   spiced_pork_share_pct: 25,
 
   whole_pig_price: 2800,
-  raw_pork_price_per_kg: 85,
-  spiced_pork_price_per_kg: 120,
+  raw_pork_price_per_kg: 88.18, // GHS 40/lb
+  spiced_pork_price_per_kg: 110.23, // GHS 50/lb
 
   purchase_price_per_pig: 1800,
   slaughter_cost_per_pig: 150,

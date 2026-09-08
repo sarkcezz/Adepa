@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const [pickup, setPickup] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [promo, setPromo] = useState<{ discount: number; freeDelivery: boolean } | null>(null);
+  const [autoDiscount, setAutoDiscount] = useState<{ discount: number; freeDelivery: boolean; name: string } | null>(null);
   const [giftCode, setGiftCode] = useState("");
   const [giftCard, setGiftCard] = useState<{ balance_kobo: number } | null>(null);
   const [loyalty, setLoyalty] = useState<{ balance: number; redeemable_kobo: number } | null>(null);
@@ -85,8 +86,27 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, [method, items, addressId, addresses, newAddr.district]);
 
-  const deliveryFee = method === "HOME" ? (promo?.freeDelivery ? 0 : deliveryFeeKobo) : 0;
-  const discount = promo?.discount ?? 0;
+  // Bulk-purchase discount preview — only while no manual code is applied,
+  // so it's visible before checkout rather than only on the confirmation.
+  useEffect(() => {
+    if (promo || items.length === 0) {
+      setAutoDiscount(null);
+      return;
+    }
+    const productLines = [...new Set(items.map((i) => i.product.product_line))];
+    api<{ valid: boolean; discount_kobo?: number; free_delivery?: boolean; campaign_name?: string }>(
+      "/campaigns/auto-apply",
+      { method: "POST", body: JSON.stringify({ subtotal_kobo: subtotal, product_lines: productLines }) },
+    )
+      .then((r) => setAutoDiscount(r.valid ? { discount: r.discount_kobo ?? 0, freeDelivery: !!r.free_delivery, name: r.campaign_name ?? "Bulk discount" } : null))
+      .catch(() => setAutoDiscount(null));
+  }, [promo, items, subtotal]);
+
+  // A manually entered code always wins; the bulk-purchase discount only
+  // applies itself when the customer hasn't typed one in.
+  const activeDiscount = promo ?? autoDiscount;
+  const deliveryFee = method === "HOME" ? (activeDiscount?.freeDelivery ? 0 : deliveryFeeKobo) : 0;
+  const discount = activeDiscount?.discount ?? 0;
   const preLoyaltyTotal = Math.max(0, subtotal + deliveryFee - discount);
   const redeemablePoints = loyalty ? Math.min(loyalty.balance, Math.floor(preLoyaltyTotal / 10)) : 0;
   const loyaltyKobo = useLoyalty ? redeemablePoints * 10 : 0;
@@ -346,6 +366,11 @@ export default function CheckoutPage() {
             {promo && (
               <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
                 <Check className="size-3.5" /> Promo applied
+              </p>
+            )}
+            {!promo && autoDiscount && (
+              <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+                <Check className="size-3.5" /> {autoDiscount.name} applied automatically
               </p>
             )}
           </section>

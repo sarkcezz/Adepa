@@ -8,7 +8,7 @@ import { audit } from "@/app/api/_lib/admin";
 
 type Input = typeof campaigns.$inferInsert;
 const SIMPLE: (keyof Input)[] = [
-  "name", "discount_type", "discount_value", "min_order_kobo", "max_usage", "applicable_lines", "is_active",
+  "name", "discount_type", "discount_value", "min_order_kobo", "max_usage", "applicable_lines", "auto_apply", "is_active",
 ];
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

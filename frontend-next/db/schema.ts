@@ -194,6 +194,8 @@ export const campaigns = pgTable(
     valid_from: timestamp("valid_from").notNull(),
     valid_to: timestamp("valid_to").notNull(),
     applicable_lines: jsonb("applicable_lines"),
+    /** Applied automatically to any qualifying cart, no code entry — bulk-purchase discounts use this. */
+    auto_apply: boolean("auto_apply").notNull().default(false),
     is_active: boolean("is_active").notNull().default(true),
     created_at: timestamp("created_at").notNull().defaultNow(),
     updated_at: timestamp("updated_at").notNull().defaultNow(),
@@ -468,3 +470,25 @@ export const auditLogs = pgTable(
     index("audit_created_idx").on(t.created_at),
   ],
 );
+
+/* -------------------------------------------------- shipping / delivery */
+/** Per-district base delivery fee. A district with no row here falls back to shippingSettings.default_fee_kobo. */
+export const shippingZones = pgTable(
+  "shipping_zones",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    district: varchar("district", { length: 100 }).notNull().unique(),
+    fee_kobo: integer("fee_kobo").notNull(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at").notNull().defaultNow(),
+  },
+);
+
+/** Singleton row (id always "default") holding the global delivery-pricing knobs. */
+export const shippingSettings = pgTable("shipping_settings", {
+  id: varchar("id", { length: 20 }).primaryKey().default("default"),
+  default_fee_kobo: integer("default_fee_kobo").notNull(),
+  free_weight_grams: integer("free_weight_grams").notNull(),
+  surcharge_per_kg_kobo: integer("surcharge_per_kg_kobo").notNull(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});

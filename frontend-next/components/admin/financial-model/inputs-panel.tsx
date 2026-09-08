@@ -1,15 +1,21 @@
 import { CircleHelp } from "lucide-react";
 import type { Assumptions } from "@/lib/financial-model";
+import { GRAMS_PER_LB } from "@/lib/format";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 type Key = keyof Assumptions;
 
+/** GHS/kg -> GHS/lb, for a read-only conversion hint next to per-kg price fields. */
+function perLb(value: number): string {
+  return (value * (GRAMS_PER_LB / 1000)).toFixed(2);
+}
+
 function Field({
-  label, help, value, field, onChange, suffix, step = "1",
+  label, help, value, field, onChange, suffix, step = "1", conversion,
 }: {
-  label: string; help: string; value: number; field: Key; onChange: (field: Key, value: number) => void; suffix?: string; step?: string;
+  label: string; help: string; value: number; field: Key; onChange: (field: Key, value: number) => void; suffix?: string; step?: string; conversion?: string;
 }) {
   return (
     <div className="space-y-1">
@@ -36,6 +42,7 @@ function Field({
         />
         {suffix && <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{suffix}</span>}
       </div>
+      {conversion && <p className="text-[11px] text-muted-foreground/80">{conversion}</p>}
     </div>
   );
 }
@@ -76,8 +83,16 @@ export function InputsPanel({ assumptions, onChange }: { assumptions: Assumption
 
       <Section title="Pricing">
         <Field label="Whole pig price" help="Selling price for one whole processed pig." value={assumptions.whole_pig_price} field="whole_pig_price" onChange={onChange} suffix="GHS" />
-        <Field label="Raw pork price/kg" help="Selling price per kilogram of raw pork." value={assumptions.raw_pork_price_per_kg} field="raw_pork_price_per_kg" onChange={onChange} suffix="GHS" />
-        <Field label="Spiced pork price/kg" help="Selling price per kilogram of spiced pork." value={assumptions.spiced_pork_price_per_kg} field="spiced_pork_price_per_kg" onChange={onChange} suffix="GHS" />
+        <Field
+          label="Raw pork price/kg" help="Selling price per kilogram of raw pork — the shop sells by the pound, so this converts automatically."
+          value={assumptions.raw_pork_price_per_kg} field="raw_pork_price_per_kg" onChange={onChange} suffix="GHS"
+          conversion={`≈ GHS ${perLb(assumptions.raw_pork_price_per_kg)}/lb`}
+        />
+        <Field
+          label="Spiced pork price/kg" help="Selling price per kilogram of spiced pork — the shop sells by the pound, so this converts automatically."
+          value={assumptions.spiced_pork_price_per_kg} field="spiced_pork_price_per_kg" onChange={onChange} suffix="GHS"
+          conversion={`≈ GHS ${perLb(assumptions.spiced_pork_price_per_kg)}/lb`}
+        />
       </Section>
 
       <Section title="Direct costs">

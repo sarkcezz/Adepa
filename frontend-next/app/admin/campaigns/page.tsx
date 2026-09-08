@@ -17,9 +17,9 @@ type Draft = {
   id?: string; name: string; code: string;
   discount_type: Campaign["discount_type"]; value: string;
   min_order_ghs: string; max_usage: string;
-  valid_from: string; valid_to: string; is_active: boolean;
+  valid_from: string; valid_to: string; auto_apply: boolean; is_active: boolean;
 };
-const EMPTY: Draft = { name: "", code: "", discount_type: "PERCENT", value: "10", min_order_ghs: "", max_usage: "", valid_from: "", valid_to: "", is_active: true };
+const EMPTY: Draft = { name: "", code: "", discount_type: "PERCENT", value: "10", min_order_ghs: "", max_usage: "", valid_from: "", valid_to: "", auto_apply: false, is_active: true };
 
 function toLocal(iso?: string) {
   if (!iso) return "";
@@ -48,7 +48,7 @@ export default function AdminCampaignsPage() {
       value: c.discount_type === "FIXED" ? (c.discount_value / 100).toFixed(2) : String(c.discount_value),
       min_order_ghs: c.min_order_kobo ? (c.min_order_kobo / 100).toFixed(2) : "",
       max_usage: c.max_usage ? String(c.max_usage) : "",
-      valid_from: toLocal(c.valid_from), valid_to: toLocal(c.valid_to), is_active: c.is_active,
+      valid_from: toLocal(c.valid_from), valid_to: toLocal(c.valid_to), auto_apply: c.auto_apply, is_active: c.is_active,
     });
     setOpen(true);
   }
@@ -60,7 +60,8 @@ export default function AdminCampaignsPage() {
       discount_value: draft.discount_type === "FIXED" ? Math.round(parseFloat(draft.value || "0") * 100) : Number(draft.value || 0),
       min_order_kobo: draft.min_order_ghs ? Math.round(parseFloat(draft.min_order_ghs) * 100) : 0,
       max_usage: draft.max_usage ? Number(draft.max_usage) : null,
-      valid_from: draft.valid_from || null, valid_to: draft.valid_to || null, is_active: draft.is_active,
+      valid_from: draft.valid_from || null, valid_to: draft.valid_to || null,
+      auto_apply: draft.auto_apply, is_active: draft.is_active,
     };
     try {
       if (draft.id) await api(`/admin/campaigns/${draft.id}`, { method: "PUT", token: token!, body: JSON.stringify(body) });
@@ -97,7 +98,7 @@ export default function AdminCampaignsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-secondary/50 text-left text-xs uppercase text-muted-foreground">
-                <tr><th className="px-4 py-3 font-semibold">Code</th><th className="px-4 py-3 font-semibold">Name</th><th className="px-4 py-3 font-semibold">Value</th><th className="px-4 py-3 font-semibold">Used</th><th className="px-4 py-3 font-semibold">Valid until</th><th className="px-4 py-3 font-semibold">Status</th><th /></tr>
+                <tr><th className="px-4 py-3 font-semibold">Code</th><th className="px-4 py-3 font-semibold">Name</th><th className="px-4 py-3 font-semibold">Value</th><th className="px-4 py-3 font-semibold">Applies</th><th className="px-4 py-3 font-semibold">Used</th><th className="px-4 py-3 font-semibold">Valid until</th><th className="px-4 py-3 font-semibold">Status</th><th /></tr>
               </thead>
               <tbody>
                 {items.map((c) => (
@@ -105,6 +106,11 @@ export default function AdminCampaignsPage() {
                     <td className="px-4 py-3 font-mono font-bold text-primary">{c.code}</td>
                     <td className="px-4 py-3">{c.name}</td>
                     <td className="px-4 py-3">{valueLabel(c)}</td>
+                    <td className="px-4 py-3">
+                      {c.auto_apply
+                        ? <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent-foreground">Auto (bulk)</span>
+                        : <span className="text-xs text-muted-foreground">Code entry</span>}
+                    </td>
                     <td className="px-4 py-3 tabular-nums">{c.usage_count}{c.max_usage ? `/${c.max_usage}` : ""}</td>
                     <td className="px-4 py-3 text-muted-foreground">{formatDate(c.valid_to)}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{c.is_active ? "On" : "Off"}</span></td>
@@ -150,6 +156,13 @@ export default function AdminCampaignsPage() {
               <Fld label="Valid from" type="datetime-local" value={draft.valid_from} onChange={(v) => setDraft({ ...draft, valid_from: v })} />
               <Fld label="Valid to" type="datetime-local" value={draft.valid_to} onChange={(v) => setDraft({ ...draft, valid_to: v })} />
             </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" checked={draft.auto_apply} onChange={(e) => setDraft({ ...draft, auto_apply: e.target.checked })} className="mt-0.5 size-4 accent-primary" />
+              <span>
+                Auto-apply — no code needed
+                <span className="block text-xs text-muted-foreground">Applied automatically to any qualifying cart (use &quot;Min order&quot; above as the bulk threshold). The code above becomes just an internal label.</span>
+              </span>
+            </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={draft.is_active} onChange={(e) => setDraft({ ...draft, is_active: e.target.checked })} className="size-4 accent-primary" /> Active
             </label>

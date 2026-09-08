@@ -55,7 +55,7 @@ export async function processDueSubscriptions(): Promise<{ processed: number; fa
         const [address] = sub.address_id
           ? await db.select({ district: addresses.district }).from(addresses).where(eq(addresses.id, sub.address_id)).limit(1)
           : [];
-        deliveryFee = calculateDeliveryFeeKobo(address?.district, totalWeightGrams);
+        deliveryFee = await calculateDeliveryFeeKobo(address?.district, totalWeightGrams);
       }
 
       const [order] = await db

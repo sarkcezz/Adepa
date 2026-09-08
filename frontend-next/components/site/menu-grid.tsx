@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import type { Product, ProductLine } from "@/lib/types";
-import { CATEGORY_LABEL, type ProductCategory } from "@/lib/format";
+import { CATEGORY_LABEL, lbToGrams, type ProductCategory } from "@/lib/format";
 import { ProductCard } from "./product-card";
 import { cn } from "@/lib/utils";
 
@@ -14,12 +14,16 @@ const LINES: { value: ProductLine | "ALL"; label: string }[] = [
   { value: "READY_TO_EAT", label: "Ready to eat" },
 ];
 
+const LB1 = lbToGrams(1);
+const LB2 = lbToGrams(2);
+const LB5 = lbToGrams(5);
+
 const SIZES: { value: string; label: string; test: (g: number) => boolean }[] = [
   { value: "ALL", label: "Any size", test: () => true },
-  { value: "small", label: "≤ 1kg", test: (g) => g <= 1000 },
-  { value: "2kg", label: "2kg", test: (g) => g > 1000 && g <= 2000 },
-  { value: "5kg", label: "5kg", test: (g) => g > 2000 && g <= 5000 },
-  { value: "10kg", label: "10kg", test: (g) => g > 5000 },
+  { value: "small", label: "≤ 1lb", test: (g) => g <= LB1 },
+  { value: "2lb", label: "2lb", test: (g) => g > LB1 && g <= LB2 },
+  { value: "5lb", label: "5lb", test: (g) => g > LB2 && g <= LB5 },
+  { value: "10lb", label: "10lb", test: (g) => g > LB5 },
 ];
 
 export function MenuGrid({

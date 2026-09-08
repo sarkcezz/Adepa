@@ -7,9 +7,21 @@ export function formatGhs(kobo: number): string {
   }).format((kobo ?? 0) / 100);
 }
 
+/** Pork is sold by the pound storefront-wide — weight is stored in grams, displayed in lb. */
+export const GRAMS_PER_LB = 453.592;
+
+export function gramsToLb(grams: number): number {
+  return grams / GRAMS_PER_LB;
+}
+
+export function lbToGrams(lb: number): number {
+  return Math.round(lb * GRAMS_PER_LB);
+}
+
 export function formatWeight(grams?: number | null): string {
   if (!grams) return "";
-  return grams >= 1000 ? `${(grams / 1000).toFixed(grams % 1000 === 0 ? 0 : 1)}kg` : `${grams}g`;
+  const lb = Math.round(gramsToLb(grams) * 10) / 10;
+  return `${lb % 1 === 0 ? lb.toFixed(0) : lb.toFixed(1)}lb`;
 }
 
 export function formatDate(iso: string): string {

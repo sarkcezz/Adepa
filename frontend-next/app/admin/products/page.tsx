@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { upload } from "@vercel/blob/client";
 import { api, API_BASE } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
-import { formatGhs, formatWeight, PRODUCT_LINE_LABEL, PRODUCT_CATEGORIES, CATEGORY_LABEL } from "@/lib/format";
+import { formatGhs, formatWeight, gramsToLb, lbToGrams, PRODUCT_LINE_LABEL, PRODUCT_CATEGORIES, CATEGORY_LABEL } from "@/lib/format";
 import type { Product, Paginated, ProductLine, ProductVariant } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ type Draft = {
 };
 
 const EMPTY: Draft = {
-  name: "", product_line: "RAW", variant: "PLAIN", weight_grams: 500,
+  name: "", product_line: "RAW", variant: "PLAIN", weight_grams: lbToGrams(1),
   price_ghs: "", heat_level: 0, stock_qty: 0, description: "", image_url: "", gallery_urls: [],
   category: "", nutrition_info: "", cooking_tips: "", is_active: true,
 };
@@ -209,8 +209,13 @@ export default function AdminProductsPage() {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label>Weight (g)</Label>
-                <Input type="number" value={draft.weight_grams} onChange={(e) => setDraft({ ...draft, weight_grams: e.target.value === "" ? "" : Number(e.target.value) })} />
+                <Label>Weight (lb)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={draft.weight_grams === "" ? "" : (Math.round(gramsToLb(draft.weight_grams) * 100) / 100)}
+                  onChange={(e) => setDraft({ ...draft, weight_grams: e.target.value === "" ? "" : lbToGrams(Number(e.target.value)) })}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Price (GHS)</Label>
